@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "641802044909",
+    "project_id": "appbangiay-dac0f",
+    "storage_bucket": "appbangiay-dac0f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:641802044909:android:26fdadf1edac15a10393e4",
+        "android_client_info": {
+          "package_name": "com.example.appbangiay"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "641802044909-h0nv3k95vt6ck5tdv2o8207vphoceqra.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.appbangiay",
+            "certificate_hash": "a21de65961c356c60f63a01d7738867b79380e20"
+          }
+        },
+        {
+          "client_id": "641802044909-24qqo2p5dsuu0cg99sfjkchoabobo41s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmzeKVxo6fc1Jhli486S4U2DgShUySLlM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "641802044909-24qqo2p5dsuu0cg99sfjkchoabobo41s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

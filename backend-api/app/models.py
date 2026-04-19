@@ -65,3 +65,15 @@ class OrderDetail(Base):
     price = Column(Float)
 
     order = relationship("Order", back_populates="items")
+
+class Cart(Base):
+    __tablename__ = "cart"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    product_id = Column(Integer, ForeignKey("products.id"))
+    quantity = Column(Integer, default=1)
+    color = Column(String(50))
+    size = Column(String(10))
+    
+    product = relationship("Product")

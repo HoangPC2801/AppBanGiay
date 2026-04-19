@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from .. import models, schemas, database
@@ -12,3 +12,10 @@ router = APIRouter(
 def get_all_products(db: Session = Depends(database.get_db)):
     products = db.query(models.Product).all()
     return products
+
+@router.get("/{product_id}", response_model=schemas.Product)
+def get_product(product_id: int, db: Session = Depends(database.get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Không tìm thấy đôi giày này")
+    return product

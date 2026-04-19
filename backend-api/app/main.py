@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine
 from . import models
-from .routers import products  
+from .routers import products, categories, cart, orders
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -22,11 +22,10 @@ app.add_middleware(
 )
 
 app.include_router(products.router)
+app.include_router(categories.router)
+app.include_router(cart.router)
+app.include_router(orders.router)
 
-@app.get("/", tags=["Root"])
-def read_root():
-    return {
-        "status": "online",
-        "message": "Server FastAPI Hệ thống bán giày đang hoạt động ổn định!",
-        "docs": "/docs"
-    }
+@app.get("/")
+def home():
+    return {"message": "API BizFlow đang chạy. Truy cập /docs để xem tài liệu."}
