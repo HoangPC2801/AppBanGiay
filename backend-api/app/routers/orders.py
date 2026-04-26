@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import models, schemas, database
 
-router = APIRouter(prefix="/orders", tags=["Orders"])
+router = APIRouter(prefix="/orders", tags=["Orders Management"])        
 
 @router.post("/", response_model=schemas.OrderOut)
 def create_order(order: schemas.OrderCreate, db: Session = Depends(database.get_db)):
@@ -38,4 +38,25 @@ def create_order(order: schemas.OrderCreate, db: Session = Depends(database.get_
 # API cho Web Admin lấy danh sách tất cả đơn hàng
 @router.get("/", response_model=List[schemas.OrderOut])
 def get_all_orders(db: Session = Depends(database.get_db)):
-    return db.query(models.Order).all()
+    # Sắp xếp đơn hàng mới nhất lên đầu
+    orders = db.query(models.Order).order_by(models.Order.created_at.desc()).all()
+    return orders
+
+@router.patch("/{order_id}/status", response_model=schemas.OrderOut)
+def update_order_status(
+    order_id: int, 
+    order_update: schemas.OrderStatusUpdate, 
+    db: Session = Depends(database.get_db)
+):
+    # Tìm đơn hàng trong database
+    db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    
+    if not db_order:
+        raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
+
+    # Cập nhật trạng thái mới
+    db_order.status = order_update.status
+    db.commit()
+    db.refresh(db_order)
+    
+    return db_order

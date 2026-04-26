@@ -51,6 +51,7 @@ class Order(Base):
     status = Column(String(20), default="pending")
     shipping_address = Column(Text)
     payment_method = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
 
     owner = relationship("User", back_populates="orders")
     items = relationship("OrderDetail", back_populates="order")

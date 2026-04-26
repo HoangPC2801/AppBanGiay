@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 
 # SCHEMAS CHO CATEGORY
 class CategoryBase(BaseModel):
@@ -65,6 +66,9 @@ class OrderCreate(BaseModel):
     payment_method: str
     items: List[OrderItemBase] # Một đơn hàng chứa nhiều sản phẩm
 
+class OrderStatusUpdate(BaseModel):
+    status: str  # Ví dụ: 'processing', 'shipped', 'completed', 'cancelled'
+
 class OrderOut(BaseModel):
     id: int
     user_id: int
@@ -72,6 +76,7 @@ class OrderOut(BaseModel):
     status: str
     shipping_address: str
     payment_method: str
+    created_at: datetime
 
     class Config:
         from_attributes = True

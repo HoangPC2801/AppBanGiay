@@ -4,6 +4,7 @@
         alias(libs.plugins.kotlin.compose)
 
         id("com.google.gms.google-services")
+        id("org.jetbrains.kotlin.kapt")
     }
 
     android {
@@ -74,4 +75,11 @@
         implementation("com.google.firebase:firebase-analytics")
         implementation("com.google.firebase:firebase-auth-ktx")
 
+        // Coil để hiển thị hình ảnh từ URL trong Jetpack Compose
+        implementation("io.coil-kt:coil-compose:2.6.0")
+
+        val room_version = "2.6.1"
+        implementation("androidx.room:room-runtime:$room_version")
+        implementation("androidx.room:room-ktx:$room_version")
+        kapt("androidx.room:room-compiler:$room_version")
     }
