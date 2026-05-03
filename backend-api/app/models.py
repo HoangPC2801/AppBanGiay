@@ -78,3 +78,12 @@ class Cart(Base):
     size = Column(String(10))
     
     product = relationship("Product")
+
+class Admin(Base):
+    __tablename__ = "admins"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, index=True, nullable=False)
+    password_hash = Column(String(255), nullable=False) # Chú ý: Cột này lưu mật khẩu đã mã hóa
+    full_name = Column(String(100), nullable=False)
+    role = Column(String(20), nullable=False, default="manager") # Phân quyền: 'manager' hoặc 'superadmin'

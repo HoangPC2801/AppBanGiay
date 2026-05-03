@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine
 from . import models
-from .routers import products, categories, cart, orders
+from .routers import products, categories, cart, orders, users, admins, dashboard
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -15,7 +15,10 @@ app = FastAPI(
 # CẤU HÌNH CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Cho phép tất cả các nguồn (hoặc điền URL web admin)
+    allow_origins=[
+        "http://localhost:5500", 
+        "http://127.0.0.1:5500"
+    ],
     allow_credentials=True,
     allow_methods=["*"],  # Cho phép tất cả các phương thức GET, POST, PUT, DELETE
     allow_headers=["*"],
@@ -25,6 +28,9 @@ app.include_router(products.router)
 app.include_router(categories.router)
 app.include_router(cart.router)
 app.include_router(orders.router)
+app.include_router(users.router)
+app.include_router(admins.router)
+app.include_router(dashboard.router)
 
 @app.get("/")
 def home():

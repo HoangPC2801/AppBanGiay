@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime
 
@@ -80,3 +80,45 @@ class OrderOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: str
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+class UserCreate(UserBase):
+    password: str
+
+class UserUpdate(UserBase):
+    password: Optional[str] = None # Cho phép không nhập mật khẩu khi cập nhật
+
+class UserOut(UserBase):
+    id: int
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+# --- SCHEMAS CHO ADMIN ---
+class AdminBase(BaseModel):
+    username: str
+    full_name: str
+    role: str
+
+class AdminCreate(AdminBase):
+    password: str
+
+class AdminUpdate(AdminBase):
+    password: Optional[str] = None # Cho phép không nhập mật khẩu khi sửa
+
+class AdminOut(AdminBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
