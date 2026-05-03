@@ -29,6 +29,8 @@ import com.example.appbangiay.ui.theme.AppBanGiayTheme
 import com.example.appbangiay.viewmodel.AuthViewModel
 import com.example.appbangiay.viewmodel.ChiTietGiayViewModel
 import com.example.appbangiay.viewmodel.ThanhToanViewModel
+import com.example.appbangiay.ui.intro.SplashScreen
+import com.example.appbangiay.ui.intro.IntroScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,13 +57,57 @@ fun AppNavigation() {
     val db = HeThongDatabase.layDatabase(context)
     val gioHangDao = db.gioHangDao()
 
-    NavHost(navController = navController, startDestination = Screen.Login.route) {
-        composable(Screen.Login.route) {
-            LoginScreen(navController, authViewModel)
+    // SỬA: Thay đổi startDestination thành "splash_screen"
+    NavHost(navController = navController, startDestination = "splash_screen") {
+
+        // 1. Màn hình Splash
+        composable("splash_screen") {
+            SplashScreen(
+                onNavigateNext = {
+                    // Chuyển sang Intro và xóa Splash khỏi lịch sử
+                    navController.navigate("intro_screen") {
+                        popUpTo("splash_screen") { inclusive = true }
+                    }
+                }
+            )
         }
+
+        // 2. Màn hình Intro
+        composable("intro_screen") {
+            IntroScreen(
+                onFinishIntro = {
+                    // Chuyển sang Login và xóa Intro khỏi lịch sử
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo("intro_screen") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // 3. Màn hình Login (Sử dụng UI mới)
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.route)
+                },
+                onLoginSuccess = {
+                    // Đăng nhập thành công chuyển sang Trang chủ
+                    navController.navigate(Screen.Home.route) {
+                        // Xóa Login khỏi lịch sử để không back lại được
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+            /* LƯU Ý: Ở code cũ bạn đang truyền (navController, authViewModel) vào LoginScreen.
+               Với giao diện Login mới, bạn có thể truyền authViewModel vào sau khi bắt đầu
+               xử lý logic gọi API đăng nhập thực tế nhé. */
+        }
+
+        // --- GIỮ NGUYÊN CÁC MÀN HÌNH CŨ CỦA BẠN TỪ ĐÂY TRỞ XUỐNG ---
         composable(Screen.Register.route) {
             RegisterScreen(navController, authViewModel)
         }
+
         composable(Screen.Home.route) {
             ManHinhTrangChu(
                 chuyenSangChiTiet = { maGiay ->
