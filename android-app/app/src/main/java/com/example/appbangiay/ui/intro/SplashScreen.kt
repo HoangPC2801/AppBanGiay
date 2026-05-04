@@ -81,10 +81,11 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
 
         // 3. Logo căn giữa màn hình
         Image(
-            painter = painterResource(id = R.drawable.logo_hoangshoe), // Nhớ thay đúng tên file ảnh
+            painter = painterResource(id = R.drawable.logo_hoangshoe),
             contentDescription = "Hoang Shoe Logo",
             modifier = Modifier
-                .fillMaxWidth(0.65f) // Độ rộng logo chiếm 65% màn hình
+                .fillMaxWidth(1f) // Độ rộng logo chiếm 65% màn hình
+                .height(180.dp)
                 .align(Alignment.Center)
         )
     }

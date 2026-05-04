@@ -23,6 +23,7 @@ import com.example.appbangiay.ui.checkout.ManHinhThanhToan
 import com.example.appbangiay.ui.detail.ManHinhChiTiet
 import com.example.appbangiay.ui.home.ManHinhTrangChu
 import com.example.appbangiay.ui.login.LoginScreen
+import com.example.appbangiay.ui.login.ForgotPasswordScreen
 import com.example.appbangiay.ui.login.RegisterScreen
 import com.example.appbangiay.ui.navigation.Screen
 import com.example.appbangiay.ui.theme.AppBanGiayTheme
@@ -87,25 +88,44 @@ fun AppNavigation() {
         // 3. Màn hình Login (Sử dụng UI mới)
         composable(Screen.Login.route) {
             LoginScreen(
+                viewModel = authViewModel,
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
                 },
+                onNavigateToForgotPassword = {
+                    navController.navigate("forgot_password_screen")
+                },
                 onLoginSuccess = {
-                    // Đăng nhập thành công chuyển sang Trang chủ
                     navController.navigate(Screen.Home.route) {
-                        // Xóa Login khỏi lịch sử để không back lại được
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
             )
-            /* LƯU Ý: Ở code cũ bạn đang truyền (navController, authViewModel) vào LoginScreen.
-               Với giao diện Login mới, bạn có thể truyền authViewModel vào sau khi bắt đầu
-               xử lý logic gọi API đăng nhập thực tế nhé. */
         }
 
-        // --- GIỮ NGUYÊN CÁC MÀN HÌNH CŨ CỦA BẠN TỪ ĐÂY TRỞ XUỐNG ---
         composable(Screen.Register.route) {
-            RegisterScreen(navController, authViewModel)
+            RegisterScreen(
+                viewModel = authViewModel,
+                onNavigateToLogin = {
+                    // Nhấn chữ "Đăng nhập" thì quay lại màn hình Login
+                    navController.popBackStack()
+                },
+                onRegisterSuccess = {
+                    // Đăng ký xong Firebase sẽ tự login, đẩy thẳng vào Trang Chủ
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("forgot_password_screen") {
+            ForgotPasswordScreen(
+                viewModel = authViewModel,
+                onNavigateBack = {
+                    navController.popBackStack() // Quay lại màn hình đăng nhập
+                }
+            )
         }
 
         composable(Screen.Home.route) {

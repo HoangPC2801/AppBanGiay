@@ -84,4 +84,7 @@
         implementation("androidx.room:room-runtime:$room_version")
         implementation("androidx.room:room-ktx:$room_version")
         kapt("androidx.room:room-compiler:$room_version")
+
+        implementation("com.google.android.gms:play-services-auth:21.0.0")
+        implementation("com.facebook.android:facebook-login:16.3.0")
     }
