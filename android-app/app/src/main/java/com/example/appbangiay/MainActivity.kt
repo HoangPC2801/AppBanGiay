@@ -32,6 +32,7 @@ import com.example.appbangiay.viewmodel.ChiTietGiayViewModel
 import com.example.appbangiay.viewmodel.ThanhToanViewModel
 import com.example.appbangiay.ui.intro.SplashScreen
 import com.example.appbangiay.ui.intro.IntroScreen
+import com.example.appbangiay.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -129,8 +130,8 @@ fun AppNavigation() {
         }
 
         composable(Screen.Home.route) {
-            ManHinhTrangChu(
-                chuyenSangChiTiet = { maGiay ->
+            MainScreen(
+                onNavigateToDetail = { maGiay ->
                     navController.navigate(Screen.ChiTiet.taoDuongDan(maGiay))
                 }
             )
