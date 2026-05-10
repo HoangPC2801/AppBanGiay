@@ -33,10 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appbangiay.R
 import android.widget.Toast
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import com.example.appbangiay.viewmodel.AuthState
 import com.example.appbangiay.viewmodel.AuthViewModel
@@ -47,7 +43,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
 import com.facebook.AccessToken
 
 @OptIn(ExperimentalMaterial3Api::class)

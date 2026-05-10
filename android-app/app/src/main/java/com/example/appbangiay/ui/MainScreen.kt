@@ -12,8 +12,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.appbangiay.ui.home.ManHinhTrangChu
 import com.example.appbangiay.ui.chat.ManHinhChat
 import com.example.appbangiay.ui.notification.ManHinhThongBao
+import com.example.appbangiay.ui.profile.ManHinhToi
 
-// Khai báo các mục ở thanh điều hướng dưới
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     object Home : BottomNavItem("home", Icons.Default.Home, "Trang chủ")
     object Chat : BottomNavItem("chat", Icons.Default.Chat, "Chat")
@@ -54,13 +54,12 @@ fun MainScreen(onNavigateToDetail: (Int) -> Unit) {
             }
         }
     ) { innerPadding ->
-        // Nội dung thay đổi tùy theo tab được chọn
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedItem) {
                 0 -> ManHinhTrangChu(chuyenSangChiTiet = onNavigateToDetail)
                 1 -> ManHinhChat()
                 2 -> ManHinhThongBao()
-                3 -> Text("Màn hình Cá nhân đang phát triển...")
+                3 -> ManHinhToi()
             }
         }
     }
