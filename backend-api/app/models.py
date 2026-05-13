@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, Boolean, TIMESTAMP, text, DECIMAL, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, Boolean, TIMESTAMP, text, DECIMAL, Enum, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -43,7 +43,7 @@ class Product(Base):
     brand = Column(String(50), nullable=True, index=True)
     
     # Tự động lấy giờ hệ thống khi tạo và cập nhật
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     
     # Các thuộc tính chi tiết của giày
