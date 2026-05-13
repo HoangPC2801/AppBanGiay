@@ -21,11 +21,21 @@ class ProductBase(BaseModel):
     name: str
     price: float
     description: Optional[str] = None
-    image: Optional[str] = None
-    category_id: int
+    
+    # ⚠️ QUAN TRỌNG: Sửa thành 'image' (không dùng image_url nữa)
+    image: Optional[str] = None 
+    
+    # Khai báo thêm các trường có trong Database để Web Admin và App có thể đọc được
+    category: Optional[str] = None
+    category_id: Optional[int] = None
     brand: Optional[str] = None
-    stock_quantity: int = 0
-    is_active: bool = True
+    color: Optional[str] = None
+    stock_quantity: Optional[int] = 0
+    material: Optional[str] = None
+    gender: Optional[str] = "Unisex"
+    season: Optional[str] = None
+    style: Optional[str] = None
+    is_active: Optional[bool] = True
 
 # Schema dùng để trả dữ liệu về cho Client (App/Web)
 class Product(ProductBase):
@@ -35,6 +45,19 @@ class Product(ProductBase):
     class Config:
         from_attributes = True 
 
+
+# Khuôn dùng để nhận dữ liệu khi Tạo mới
+class ProductCreate(ProductBase):
+    pass
+
+# Khuôn dùng để Trả dữ liệu về cho Web/App
+class ProductResponse(ProductBase):
+    id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True # (hoặc orm_mode = True nếu bạn đang dùng Pydantic bản cũ)
 
 # SCHEMAS CHO GIỎ HÀNG
 class CartItemBase(BaseModel):

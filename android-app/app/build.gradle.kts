@@ -76,7 +76,7 @@
         implementation("com.google.firebase:firebase-auth-ktx")
 
         // Coil để hiển thị hình ảnh từ URL trong Jetpack Compose
-        implementation("io.coil-kt:coil-compose:2.6.0")
+        implementation("io.coil-kt:coil-compose:2.5.0")
 
         implementation ("androidx.compose.material:material-icons-extended")
 
@@ -87,5 +87,5 @@
 
         implementation("com.google.android.gms:play-services-auth:21.0.0")
         implementation("com.facebook.android:facebook-login:16.3.0")
-
+        implementation("io.coil-kt:coil-compose:2.5.0")
     }
