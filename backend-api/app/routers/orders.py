@@ -1,62 +1,71 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List
-from .. import models, schemas, database
+from sqlalchemy.orm import Session, joinedload
+from typing import Optional
+from .. import models, database
 
-router = APIRouter(prefix="/orders", tags=["Orders Management"])        
+router = APIRouter(prefix="/orders", tags=["Orders"])
 
-@router.post("/", response_model=schemas.OrderOut)
-def create_order(order: schemas.OrderCreate, db: Session = Depends(database.get_db)):
-    # 1. Lưu thông tin chung của đơn hàng
-    db_order = models.Order(
-        user_id=order.user_id,
-        total=order.total,
-        status="pending", # Đơn mới luôn ở trạng thái chờ
-        shipping_address=order.shipping_address,
-        payment_method=order.payment_method
-    )
-    db.add(db_order)
-    db.commit()
-    db.refresh(db_order) # Lấy ID đơn hàng vừa tạo
-
-    # 2. Lưu từng sản phẩm vào Order_Items
-    for item in order.items:
-        db_order_item = models.OrderDetail(
-            order_id=db_order.id,
-            product_id=item.product_id,
-            quantity=item.quantity,
-            price=item.price
-        )
-        db.add(db_order_item)
+# 1. Lấy danh sách kèm theo lọc trạng thái
+@router.get("/")
+def get_orders(status: Optional[str] = None, db: Session = Depends(database.get_db)):
+    query = db.query(models.Order, models.User.username)\
+              .join(models.User, models.Order.user_id == models.User.id)\
+              .options(joinedload(models.Order.items).joinedload(models.OrderDetail.product))
+              
+    if status:
+        query = query.filter(models.Order.status == status)
+        
+    orders_data = query.order_by(models.Order.created_at.desc()).all()
     
-    # 3. Xóa giỏ hàng của user sau khi đặt hàng thành công
-    db.query(models.Cart).filter(models.Cart.user_id == order.user_id).delete()
-    
-    db.commit()
-    return db_order
+    result = []
+    for order, username in orders_data:
+        items_data = []
+        for item in order.items:
+            items_data.append({
+                "quantity": item.quantity,
+                "price": item.price,
+                "product": {
+                    "name": item.product.name if item.product else "Sản phẩm lỗi/Đã xóa"
+                }
+            })
+            
+        # Đóng gói dữ liệu trả về cho Frontend
+        result.append({
+            "id": order.id,
+            "created_at": order.created_at,
+            "total": order.total,
+            "status": order.status,
+            "username": username,
+            "shipping_address": order.shipping_address,
+            "payment_method": order.payment_method,
+            "items": items_data 
+        })
+    return result
 
-# API cho Web Admin lấy danh sách tất cả đơn hàng
-@router.get("/", response_model=List[schemas.OrderOut])
-def get_all_orders(db: Session = Depends(database.get_db)):
-    # Sắp xếp đơn hàng mới nhất lên đầu
-    orders = db.query(models.Order).order_by(models.Order.created_at.desc()).all()
-    return orders
-
-@router.patch("/{order_id}/status", response_model=schemas.OrderOut)
-def update_order_status(
-    order_id: int, 
-    order_update: schemas.OrderStatusUpdate, 
-    db: Session = Depends(database.get_db)
-):
-    # Tìm đơn hàng trong database
+# 2. Cập nhật trạng thái / Hủy đơn hàng
+@router.put("/{order_id}/status")
+def update_order_status(order_id: int, status: str, db: Session = Depends(database.get_db)):
     db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
-    
     if not db_order:
         raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
-
-    # Cập nhật trạng thái mới
-    db_order.status = order_update.status
-    db.commit()
-    db.refresh(db_order)
     
-    return db_order
+    # Logic: Chỉ cho phép hủy khi đơn hàng đang pending
+    if status == 'cancelled' and db_order.status != 'pending':
+        raise HTTPException(status_code=400, detail="Chỉ có thể hủy đơn hàng ở trạng thái pending")
+        
+    db_order.status = status
+    db.commit()
+    return {"message": "Cập nhật thành công"}
+
+@router.get("/{order_id}")
+def get_order_detail(order_id: int, db: Session = Depends(database.get_db)):
+    order = db.query(models.Order)\
+              .options(
+                  joinedload(models.Order.items).joinedload(models.OrderDetail.product)
+              )\
+              .filter(models.Order.id == order_id)\
+              .first()
+              
+    if not order:
+        raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
+    return order
