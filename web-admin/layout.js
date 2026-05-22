@@ -36,6 +36,10 @@ const adminHeaderHTML = `
                     <a class="nav-link text-white" href="admin-users.html">Người dùng</a>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="admin-users-firebase.html">Người dùng Firebase</a>
+                </li>
+
                 ${superAdminMenu}
 
                 <li class="nav-item">

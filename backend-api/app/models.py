@@ -59,6 +59,23 @@ class Product(Base):
     # Trong SQLAlchemy, Boolean sẽ tự động map với tinyint(1) trong MySQL
     is_active = Column(Boolean, default=True)
 
+    variants = relationship(
+    "ProductVariant",
+    back_populates="product",
+    cascade="all, delete-orphan"
+    )
+
+class ProductVariant(Base):
+    __tablename__ = "product_variants"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    color = Column(String(50), nullable=True)
+    size = Column(String(10), nullable=True)
+    stock_quantity = Column(Integer, default=0)
+
+    product = relationship("Product", back_populates="variants")
+
 class Order(Base):
     __tablename__ = "orders"
 
@@ -81,6 +98,8 @@ class OrderDetail(Base):
     product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer)
     price = Column(Float)
+    color = Column(String(50), nullable=True)
+    size = Column(String(10), nullable=True)
 
     order = relationship("Order", back_populates="items")
     product = relationship("Product")

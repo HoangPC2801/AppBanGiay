@@ -17,6 +17,21 @@ class Category(CategoryBase):
         from_attributes = True  
 
 # SCHEMAS CHO PRODUCT
+class ProductVariantBase(BaseModel):
+    color: Optional[str] = None
+    size: Optional[str] = None
+    stock_quantity: Optional[int] = 0
+
+class ProductVariantCreate(ProductVariantBase):
+    pass
+
+class ProductVariantOut(ProductVariantBase):
+    id: int
+    product_id: int
+
+    class Config:
+        from_attributes = True
+
 class ProductBase(BaseModel):
     name: str
     price: float
@@ -43,32 +58,41 @@ class ProductBase(BaseModel):
 # Schema dùng để trả dữ liệu về cho Client (App/Web)
 class Product(ProductBase):
     id: int
-    category_rel: Optional[Category] = None  
-    
+    category_rel: Optional[Category] = None
+    variants: List[ProductVariantOut] = []
+
     class Config:
         from_attributes = True
 
 
 # Khuôn dùng để nhận dữ liệu khi Tạo mới
 class ProductCreate(ProductBase):
-    pass
+    variants: Optional[List[ProductVariantCreate]] = []
 
 # Khuôn dùng để Trả dữ liệu về cho Web/App
 class ProductResponse(ProductBase):
     id: int
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    variants: List[ProductVariantOut] = []
 
     class Config:
-        from_attributes = True # (hoặc orm_mode = True nếu bạn đang dùng Pydantic bản cũ)
+        from_attributes = True
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[float] = None
-    stock: Optional[int] = None
+    category: Optional[str] = None
     category_id: Optional[int] = None
     image: Optional[str] = None
+    brand: Optional[str] = None
+    material: Optional[str] = None
+    gender: Optional[str] = None
+    season: Optional[str] = None
+    style: Optional[str] = None
+    is_active: Optional[bool] = None
+    variants: Optional[List[ProductVariantCreate]] = None
 
 
 # SCHEMAS CHO GIỎ HÀNG
@@ -93,6 +117,8 @@ class OrderItemBase(BaseModel):
     product_id: int
     quantity: int
     price: float
+    color: Optional[str] = None
+    size: Optional[str] = None
 
 class OrderItemOut(OrderItemBase):
     id: int

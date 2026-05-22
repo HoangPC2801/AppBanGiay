@@ -120,13 +120,26 @@
                                 <input type="text" class="form-control" id="prod-brand">
                             </div>
 
-                            <div class="col-md-4">
-                                <label class="form-label">Tồn kho</label>
-                                <input type="number" class="form-control" id="prod-stock" value="0">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Màu sắc</label>
-                                <input type="text" class="form-control" id="prod-color">
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Biến thể sản phẩm</label>
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Màu sắc</th>
+                                                <th>Size</th>
+                                                <th>Tồn kho</th>
+                                                <th style="width: 80px;">Xóa</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="variant-table-body"></tbody>
+                                    </table>
+                                </div>
+
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addVariantRow()">
+                                    <i class="fas fa-plus"></i> Thêm biến thể
+                                </button>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Giới tính</label>
@@ -190,6 +203,7 @@
 
         const API_URL = 'http://127.0.0.1:8000/products/';
         let currentProducts = [];
+        let allProducts = [];
         let productModal = new bootstrap.Modal(document.getElementById('productModal'));
 
         // Hiển thị ảnh xem trước
@@ -213,8 +227,11 @@
             try {
                 const response = await fetch(API_URL);
                 if (response.ok) {
-                    currentProducts = await response.json();
+                    allProducts = await response.json();
+                    currentProducts = allProducts;
+
                     renderTable();
+                    loadFilterOptions();
                 } else {
                     alert("Lỗi tải danh sách sản phẩm!");
                 }
@@ -224,6 +241,43 @@
         }
 
         // 2. Render HTML Bảng
+        function loadFilterOptions() {
+            const categoryFilter = document.getElementById('category-filter');
+            const brandFilter = document.getElementById('brand-filter');
+
+            categoryFilter.innerHTML = '<option value="">Tất cả danh mục</option>';
+            brandFilter.innerHTML = '<option value="">Tất cả thương hiệu</option>';
+
+            const categories = [
+                ...new Set(
+                    allProducts
+                        .map(p => p.category)
+                        .filter(c => c && c.trim() !== '')
+                )
+            ];
+
+            const brands = [
+                ...new Set(
+                    allProducts
+                        .map(p => p.brand)
+                        .filter(b => b && b.trim() !== '')
+                )
+            ];
+
+            categories.forEach(category => {
+                categoryFilter.innerHTML += `
+                    <option value="${category}">${category}</option>
+                `;
+            });
+
+            brands.forEach(brand => {
+                brandFilter.innerHTML += `
+                    <option value="${brand}">${brand}</option>
+                `;
+            });
+        }
+
+
         function renderTable() {
             const tbody = document.getElementById('product-table-body');
             tbody.innerHTML = '';
@@ -236,7 +290,7 @@
                     <td><strong>${p.name}</strong><br><small class="text-muted">${p.brand || ''}</small></td>
                     <td>${p.price.toLocaleString('vi-VN')} đ</td>
                     <td>${p.category || 'N/A'}</td>
-                    <td>${p.stock_quantity || 0}</td>
+                    <td>${(p.variants || []).reduce((sum, v) => sum + (v.stock_quantity || 0), 0)}</td>
                     <td>
                         <span class="badge ${p.is_active ? 'bg-success' : 'bg-danger'}">
                             ${p.is_active ? 'Đang bán' : 'Đã ẩn'}
@@ -251,6 +305,40 @@
             });
         }
         
+        function filterProducts() {
+            const keyword = document
+                .getElementById('search-input')
+                .value
+                .toLowerCase()
+                .trim();
+
+            const category = document
+                .getElementById('category-filter')
+                .value;
+
+            const brand = document
+                .getElementById('brand-filter')
+                .value;
+
+            currentProducts = allProducts.filter(p => {
+                const matchKeyword =
+                    !keyword ||
+                    (p.name && p.name.toLowerCase().includes(keyword)) ||
+                    (p.description && p.description.toLowerCase().includes(keyword)) ||
+                    (p.brand && p.brand.toLowerCase().includes(keyword)) ||
+                    (p.category && p.category.toLowerCase().includes(keyword));
+
+                const matchCategory =
+                    !category || p.category === category;
+
+                const matchBrand =
+                    !brand || p.brand === brand;
+
+                return matchKeyword && matchCategory && matchBrand;
+            });
+
+            renderTable();
+        }
 
         // 3. Mở Modal Thêm hoặc Sửa
         function openProductModal(id = null) {
@@ -289,11 +377,13 @@
                 document.getElementById('prod-brand').value =
                     p.brand || '';
 
-                document.getElementById('prod-stock').value =
-                    p.stock_quantity || 0;
+                document.getElementById('variant-table-body').innerHTML = '';
 
-                document.getElementById('prod-color').value =
-                    p.color || '';
+                    if (p.variants && p.variants.length > 0) {
+                        p.variants.forEach(v => addVariantRow(v));
+                    } else {
+                        addVariantRow();
+                    }
 
                 document.getElementById('prod-gender').value =
                     p.gender || 'Unisex';
@@ -323,7 +413,12 @@
 
                 document.getElementById('prod-gender').value = 'Unisex';
 
+                document.getElementById('variant-table-body').innerHTML = '';
+                addVariantRow();
+
                 preview.style.display = 'none';
+
+
             }
 
             productModal.show();
@@ -404,13 +499,6 @@
                 brand:
                     document.getElementById('prod-brand').value,
 
-                stock_quantity:
-                    parseInt(
-                        document.getElementById('prod-stock').value
-                    ) || 0,
-
-                color:
-                    document.getElementById('prod-color').value,
 
                 gender:
                     document.getElementById('prod-gender').value,
@@ -426,6 +514,8 @@
 
                 description:
                     document.getElementById('prod-desc').value,
+
+                variants: getVariantsFromForm(),
             };
 
             const method = id ? 'PUT' : 'POST';
@@ -500,7 +590,58 @@
         }
 
         // Tự động load dữ liệu khi vào trang
+
+        document.getElementById('search-input').addEventListener('input', filterProducts);
+        document.getElementById('category-filter').addEventListener('change', filterProducts);
+        document.getElementById('brand-filter').addEventListener('change', filterProducts);
         window.addEventListener('load', fetchProducts);
+
+        function addVariantRow(variant = {}) {
+            const tbody = document.getElementById('variant-table-body');
+
+            const tr = document.createElement('tr');
+
+            tr.innerHTML = `
+                <td>
+                    <input type="text" class="form-control variant-color" value="${variant.color || ''}" placeholder="VD: Đen">
+                </td>
+                <td>
+                    <input type="text" class="form-control variant-size" value="${variant.size || ''}" placeholder="VD: 40">
+                </td>
+                <td>
+                    <input type="number" class="form-control variant-stock" value="${variant.stock_quantity || 0}" min="0">
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove()">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+
+            tbody.appendChild(tr);
+        }
+
+        function getVariantsFromForm() {
+            const rows = document.querySelectorAll('#variant-table-body tr');
+            const variants = [];
+
+            rows.forEach(row => {
+                const color = row.querySelector('.variant-color').value.trim();
+                const size = row.querySelector('.variant-size').value.trim();
+                const stock = parseInt(row.querySelector('.variant-stock').value) || 0;
+
+                if (color || size) {
+                    variants.push({
+                        color: color,
+                        size: size,
+                        stock_quantity: stock
+                    });
+                }
+            });
+
+            return variants;
+        }
+
     </script>
     <div id="admin-footer"></div>
 

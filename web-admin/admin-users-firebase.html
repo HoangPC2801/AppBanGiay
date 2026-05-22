@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Người dùng Firebase - HoangShoes Admin</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+<div id="admin-header"></div>
+
+<div class="container my-5 flex-grow-1">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">Người dùng Firebase</h1>
+            <p class="text-muted mb-0">
+                Danh sách tài khoản đăng ký / đăng nhập bằng Firebase Authentication.
+            </p>
+        </div>
+
+        <button class="btn btn-primary" onclick="fetchFirebaseUsers()">
+            Làm mới
+        </button>
+    </div>
+
+    <div id="message-box" class="alert d-none"></div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <input
+                        type="text"
+                        id="search-input"
+                        class="form-control"
+                        placeholder="Tìm theo email, tên, UID, số điện thoại..."
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <select id="status-filter" class="form-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active">Đang hoạt động</option>
+                        <option value="disabled">Đã khóa</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select id="verified-filter" class="form-select">
+                        <option value="">Tất cả xác minh email</option>
+                        <option value="verified">Đã xác minh</option>
+                        <option value="unverified">Chưa xác minh</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive bg-white shadow-sm">
+        <table class="table table-bordered table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 80px;">Ảnh</th>
+                    <th>Email</th>
+                    <th>Tên hiển thị</th>
+                    <th>SĐT</th>
+                    <th>Xác minh</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th>Đăng nhập gần nhất</th>
+                    <th style="width: 190px;">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="firebase-users-table-body">
+                <tr>
+                    <td colspan="9" class="text-center">Đang tải dữ liệu...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="admin-footer"></div>
+
+<script>
+    const API_URL = 'http://127.0.0.1:8000/firebase-users/';
+
+    let allFirebaseUsers = [];
+    let currentFirebaseUsers = [];
+
+    function showMessage(msg, isError = false) {
+        const box = document.getElementById('message-box');
+        box.className = `alert ${isError ? 'alert-danger' : 'alert-success'} mb-4`;
+        box.textContent = msg;
+        box.classList.remove('d-none');
+
+        setTimeout(() => {
+            box.classList.add('d-none');
+        }, 3500);
+    }
+
+    function formatFirebaseTime(timestamp) {
+        if (!timestamp) return 'Chưa có';
+
+        const date = new Date(timestamp);
+
+        if (Number.isNaN(date.getTime())) {
+            return 'Không rõ';
+        }
+
+        return date.toLocaleString('vi-VN');
+    }
+
+    function escapeHtml(value) {
+        if (value === null || value === undefined) return '';
+
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    async function fetchFirebaseUsers() {
+        const tbody = document.getElementById('firebase-users-table-body');
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center">Đang tải dữ liệu...</td>
+            </tr>
+        `;
+
+        try {
+            const response = await fetch(API_URL);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.detail || 'Không tải được danh sách Firebase users');
+            }
+
+            allFirebaseUsers = await response.json();
+            currentFirebaseUsers = allFirebaseUsers;
+
+            applyFilters();
+
+        } catch (error) {
+            console.error(error);
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-danger text-center">
+                        Lỗi tải dữ liệu. Kiểm tra backend hoặc Firebase Admin SDK.
+                    </td>
+                </tr>
+            `;
+
+            showMessage(error.message || 'Lỗi tải dữ liệu Firebase users', true);
+        }
+    }
+
+    function renderFirebaseUsers() {
+        const tbody = document.getElementById('firebase-users-table-body');
+        tbody.innerHTML = '';
+
+        if (!currentFirebaseUsers.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center text-muted">
+                        Không có người dùng phù hợp.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        currentFirebaseUsers.forEach(user => {
+            const photoUrl = user.photo_url || 'https://via.placeholder.com/60x60?text=User';
+
+            const verifiedBadge = user.email_verified
+                ? '<span class="badge bg-success">Đã xác minh</span>'
+                : '<span class="badge bg-warning text-dark">Chưa xác minh</span>';
+
+            const statusBadge = user.disabled
+                ? '<span class="badge bg-danger">Đã khóa</span>'
+                : '<span class="badge bg-success">Hoạt động</span>';
+
+            const toggleButton = user.disabled
+                ? `<button class="btn btn-success btn-sm me-1" onclick="enableFirebaseUser('${user.uid}')">Mở khóa</button>`
+                : `<button class="btn btn-warning btn-sm me-1" onclick="disableFirebaseUser('${user.uid}')">Khóa</button>`;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td class="text-center">
+                        <img
+                            src="${escapeHtml(photoUrl)}"
+                            alt="Avatar"
+                            style="width:60px;height:60px;object-fit:cover;border-radius:50%;"
+                            onerror="this.src='https://via.placeholder.com/60x60?text=User'"
+                        >
+                    </td>
+                    <td>
+                        <div class="fw-semibold">${escapeHtml(user.email || 'Chưa có email')}</div>
+                        <small class="text-muted">UID: ${escapeHtml(user.uid)}</small>
+                    </td>
+                    <td>${escapeHtml(user.display_name || 'Chưa có')}</td>
+                    <td>${escapeHtml(user.phone_number || 'Chưa có')}</td>
+                    <td>${verifiedBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td>${formatFirebaseTime(user.creation_timestamp)}</td>
+                    <td>${formatFirebaseTime(user.last_sign_in_timestamp)}</td>
+                    <td>
+                        ${toggleButton}
+                        <button class="btn btn-danger btn-sm" onclick="deleteFirebaseUser('${user.uid}')">
+                            Xóa
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function applyFilters() {
+        const keyword = document
+            .getElementById('search-input')
+            .value
+            .toLowerCase()
+            .trim();
+
+        const status = document.getElementById('status-filter').value;
+        const verified = document.getElementById('verified-filter').value;
+
+        currentFirebaseUsers = allFirebaseUsers.filter(user => {
+            const matchKeyword =
+                !keyword ||
+                (user.email || '').toLowerCase().includes(keyword) ||
+                (user.display_name || '').toLowerCase().includes(keyword) ||
+                (user.phone_number || '').toLowerCase().includes(keyword) ||
+                (user.uid || '').toLowerCase().includes(keyword);
+
+            const matchStatus =
+                !status ||
+                (status === 'active' && !user.disabled) ||
+                (status === 'disabled' && user.disabled);
+
+            const matchVerified =
+                !verified ||
+                (verified === 'verified' && user.email_verified) ||
+                (verified === 'unverified' && !user.email_verified);
+
+            return matchKeyword && matchStatus && matchVerified;
+        });
+
+        renderFirebaseUsers();
+    }
+
+    async function disableFirebaseUser(uid) {
+        if (!confirm('Bạn chắc chắn muốn khóa tài khoản Firebase này?')) return;
+
+        try {
+            const response = await fetch(`${API_URL}${uid}/disable`, {
+                method: 'PATCH'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.detail || 'Không thể khóa tài khoản');
+            }
+
+            showMessage('Đã khóa tài khoản Firebase.');
+            fetchFirebaseUsers();
+
+        } catch (error) {
+            showMessage(error.message || 'Lỗi khóa tài khoản', true);
+        }
+    }
+
+    async function enableFirebaseUser(uid) {
+        if (!confirm('Bạn chắc chắn muốn mở khóa tài khoản Firebase này?')) return;
+
+        try {
+            const response = await fetch(`${API_URL}${uid}/enable`, {
+                method: 'PATCH'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.detail || 'Không thể mở khóa tài khoản');
+            }
+
+            showMessage('Đã mở khóa tài khoản Firebase.');
+            fetchFirebaseUsers();
+
+        } catch (error) {
+            showMessage(error.message || 'Lỗi mở khóa tài khoản', true);
+        }
+    }
+
+    async function deleteFirebaseUser(uid) {
+        if (!confirm('Bạn chắc chắn muốn xóa tài khoản Firebase này? Thao tác này không thể hoàn tác.')) return;
+
+        try {
+            const response = await fetch(`${API_URL}${uid}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.detail || 'Không thể xóa tài khoản');
+            }
+
+            showMessage('Đã xóa tài khoản Firebase.');
+            fetchFirebaseUsers();
+
+        } catch (error) {
+            showMessage(error.message || 'Lỗi xóa tài khoản', true);
+        }
+    }
+
+    document.getElementById('search-input').addEventListener('input', applyFilters);
+    document.getElementById('status-filter').addEventListener('change', applyFilters);
+    document.getElementById('verified-filter').addEventListener('change', applyFilters);
+
+    window.addEventListener('load', fetchFirebaseUsers);
+</script>
+
+<script src="layout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

@@ -24,8 +24,12 @@ def get_orders(status: Optional[str] = None, db: Session = Depends(database.get_
             items_data.append({
                 "quantity": item.quantity,
                 "price": item.price,
+                "color": item.color,
+                "size": item.size,
                 "product": {
-                    "name": item.product.name if item.product else "Sản phẩm lỗi/Đã xóa"
+                    "id": item.product.id if item.product else None,
+                    "name": item.product.name if item.product else "Sản phẩm lỗi/Đã xóa",
+                    "image": item.product.image if item.product else None
                 }
             })
             
