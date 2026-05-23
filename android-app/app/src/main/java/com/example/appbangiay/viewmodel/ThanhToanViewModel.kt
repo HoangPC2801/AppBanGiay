@@ -10,11 +10,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
 
 class ThanhToanViewModel(private val dao: GioHangDao) : ViewModel() {
 
     // Lấy danh sách realtime từ Room DB
-    val danhSachGioHang = dao.layDanhSachGioHang()
+    private val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+    val danhSachGioHang = dao.layTheoNguoiDung(uid)
 
     private val _trangThaiDatHang = MutableStateFlow<String>("Chưa đặt")
     val trangThaiDatHang: StateFlow<String> = _trangThaiDatHang
@@ -58,7 +61,7 @@ class ThanhToanViewModel(private val dao: GioHangDao) : ViewModel() {
                 val phanHoi = KetNoiServer.api.taoDonHang(yeuCau)
                 if (phanHoi.isSuccessful) {
                     _trangThaiDatHang.value = "Thành công"
-                    dao.xoaToanBoGioHang() // Đặt thành công thì xóa giỏ hàng local
+                    dao.xoaTheoNguoiDung(uid) // Đặt thành công thì xóa giỏ hàng local
                 } else {
                     _trangThaiDatHang.value = "Lỗi server: ${phanHoi.code()}"
                 }

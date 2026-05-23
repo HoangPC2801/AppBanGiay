@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.example.appbangiay.database.GioHangDao
 import com.example.appbangiay.model.GioHang
+import com.google.firebase.auth.FirebaseAuth
 class ChiTietGiayViewModel(
     private val dao: GioHangDao
 ) : ViewModel() {
@@ -33,15 +34,29 @@ class ChiTietGiayViewModel(
         }
     }
 
-    fun themVaoGioHang(giay: Giay) {
+    fun themVaoGioHang(
+        giay: Giay,
+        mauSac: String?,
+        size: String?
+    ) {
         viewModelScope.launch {
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+
+            if (uid == null) {
+                return@launch
+            }
+
             val monHang = GioHang(
+                firebaseUid = uid,
                 maGiay = giay.maGiay,
                 tenGiay = giay.tenGiay,
                 giaTien = giay.giaTien,
                 hinhAnh = giay.hinhAnh,
-                soLuong = 1 // Mặc định mỗi lần bấm là thêm 1 đôi
+                mauSac = mauSac,
+                size = size,
+                soLuong = 1
             )
+
             dao.themVaoGio(monHang)
         }
     }

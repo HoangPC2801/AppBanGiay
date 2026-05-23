@@ -21,11 +21,23 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appbangiay.ui.theme.MauXanhChinh
+import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.runtime.*
 
 @Composable
-fun ManHinhToi() {
-    val primaryBlue = Color(0xFF67A8F8)
+fun ManHinhToi(
+    onLogoutSuccess: () -> Unit,
+    onNavigateToAddressBook: () -> Unit,
+    onNavigateToAbout: () -> Unit,
+    onNavigateToFavorite: () -> Unit,
+    onNavigateToSupport: () -> Unit,
+    onNavigateToAccountSettings: () -> Unit
+) {
+    val primaryBlue = MauXanhChinh
     val bgGray = Color(0xFFEFEFEF)
+    var hienDialogDangXuat by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -166,11 +178,16 @@ fun ManHinhToi() {
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column {
-                    MenuItemRow(icon = Icons.Outlined.LocationOn, iconColor = Color(0xFFFF9800), text = "Sổ địa chỉ")
+                    MenuItemRow(
+                        icon = Icons.Outlined.LocationOn,
+                        iconColor = Color(0xFFFF9800),
+                        text = "Sổ địa chỉ",
+                        onClick = onNavigateToAddressBook
+                    )
                     HorizontalDivider(color = bgGray, thickness = 1.dp, modifier = Modifier.padding(start = 50.dp))
                     MenuItemRow(icon = Icons.Outlined.CardGiftcard, iconColor = Color(0xFF4CAF50), text = "Kho Voucher")
                     HorizontalDivider(color = bgGray, thickness = 1.dp, modifier = Modifier.padding(start = 50.dp))
-                    MenuItemRow(icon = Icons.Outlined.FavoriteBorder, iconColor = Color(0xFFF44336), text = "Sản phẩm yêu thích")
+                    MenuItemRow(icon = Icons.Outlined.FavoriteBorder, iconColor = Color(0xFFF44336), text = "Sản phẩm yêu thích", onClick = onNavigateToFavorite)
                 }
             }
 
@@ -183,11 +200,11 @@ fun ManHinhToi() {
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column {
-                    MenuItemRow(icon = Icons.Outlined.Storefront, iconColor = Color(0xFF424242), text = "Về HoangShoe")
+                    MenuItemRow(icon = Icons.Outlined.Storefront, iconColor = Color(0xFF424242), text = "Về HoangShoes", onClick = onNavigateToAbout)
                     HorizontalDivider(color = bgGray, thickness = 1.dp, modifier = Modifier.padding(start = 50.dp))
-                    MenuItemRow(icon = Icons.Outlined.HelpOutline, iconColor = Color(0xFF424242), text = "Trung tâm hỗ trợ")
+                    MenuItemRow(icon = Icons.Outlined.HelpOutline, iconColor = Color(0xFF424242), text = "Trung tâm hỗ trợ",  onClick = onNavigateToSupport)
                     HorizontalDivider(color = bgGray, thickness = 1.dp, modifier = Modifier.padding(start = 50.dp))
-                    MenuItemRow(icon = Icons.Outlined.Settings, iconColor = Color(0xFF424242), text = "Cài đặt tài khoản")
+                    MenuItemRow(icon = Icons.Outlined.Settings, iconColor = Color(0xFF424242), text = "Cài đặt tài khoản", onClick = onNavigateToAccountSettings)
                 }
             }
 
@@ -195,7 +212,7 @@ fun ManHinhToi() {
 
             // Nút Đăng xuất
             OutlinedButton(
-                onClick = { /* Xử lý đăng xuất */ },
+                onClick = { hienDialogDangXuat = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -207,6 +224,64 @@ fun ManHinhToi() {
             }
 
             Spacer(modifier = Modifier.height(30.dp)) // Đệm dưới cùng tránh bị thanh điều hướng đè lên
+        }
+
+        if (hienDialogDangXuat) {
+            AlertDialog(
+                onDismissRequest = {
+                    hienDialogDangXuat = false
+                },
+
+                containerColor = Color.White, // màu nền dialog
+
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = null,
+                        tint = Color(0xFFFF9800),
+                        modifier = Modifier.size(48.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = "Đăng xuất",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Bạn có chắc chắn muốn đăng xuất?",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            FirebaseAuth.getInstance().signOut()
+                            hienDialogDangXuat = false
+                            onLogoutSuccess()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFF3B3B)
+                        )
+                    ) {
+                        Text("Đăng xuất")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            hienDialogDangXuat = false
+                        }
+                    ) {
+                        Text(
+                            text = "Ở lại",
+                            color = Color(0xFF064C8C),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            )
         }
     }
 }
@@ -229,17 +304,27 @@ fun OrderStatusItem(title: String, icon: ImageVector) {
             Icon(imageVector = icon, contentDescription = title, tint = Color.Black, modifier = Modifier.size(26.dp))
         }
         Spacer(modifier = Modifier.height(6.dp))
-        Text(text = title, fontSize = 11.sp, color = Color.Black)
+        Text(
+            text = title,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
     }
 }
 
 // Component dùng chung cho các dòng Menu
 @Composable
-fun MenuItemRow(icon: ImageVector, iconColor: Color, text: String) {
+fun MenuItemRow(
+    icon: ImageVector,
+    iconColor: Color,
+    text: String,
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Xử lý click */ }
+            .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -255,7 +340,7 @@ fun MenuItemRow(icon: ImageVector, iconColor: Color, text: String) {
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        Text(text = text, fontSize = 15.sp, color = Color.Black, modifier = Modifier.weight(1f))
+        Text(text = text, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.weight(1f))
 
         Icon(imageVector = Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
     }

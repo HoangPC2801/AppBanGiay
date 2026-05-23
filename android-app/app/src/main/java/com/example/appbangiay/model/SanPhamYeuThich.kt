@@ -3,8 +3,9 @@ package com.example.appbangiay.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "bang_gio_hang")
-data class GioHang(
+@Entity(tableName = "bang_yeu_thich")
+data class SanPhamYeuThich(
+
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
 
@@ -13,10 +14,5 @@ data class GioHang(
     val maGiay: Int,
     val tenGiay: String,
     val giaTien: Float,
-    val hinhAnh: String?,
-
-    val mauSac: String?,
-    val size: String?,
-
-    var soLuong: Int
+    val hinhAnh: String?
 )

@@ -15,11 +15,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import com.example.appbangiay.R
-
+import com.example.appbangiay.ui.theme.MauXanhChinh
 @Composable
 fun SplashScreen(onNavigateNext: () -> Unit) {
-    // Màu xanh dương nhạt từ ảnh của bạn
-    val primaryBlue = Color(0xFF64A5FF)
+    val primaryBlue = MauXanhChinh
 
     // Hiệu ứng chờ 2.5 giây rồi chuyển màn hình
     LaunchedEffect(key1 = true) {

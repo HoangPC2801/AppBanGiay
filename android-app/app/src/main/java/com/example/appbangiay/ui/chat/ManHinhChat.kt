@@ -24,10 +24,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appbangiay.ui.theme.MauXanhChinh
 
 @Composable
 fun ManHinhChat() {
-    val primaryBlue = Color(0xFF5EA3F6)
+    val primaryBlue = MauXanhChinh
     val lightGray = Color(0xFFF1F1F1)
     val textGray = Color(0xFF8A8A8A)
 

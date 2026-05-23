@@ -1,20 +1,31 @@
 package com.example.appbangiay.ui.cart
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.appbangiay.database.GioHangDao
 import com.example.appbangiay.model.GioHang
+import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,51 +34,180 @@ fun ManHinhGioHang(
     quayLai: () -> Unit,
     chuyenSangThanhToan: () -> Unit
 ) {
-    // Lấy luồng dữ liệu tự động cập nhật từ Room DB
-    val danhSachGioHang by dao.layDanhSachGioHang().collectAsState(initial = emptyList())
+    val uid = FirebaseAuth.getInstance().currentUser?.uid
 
-    // Tính tổng tiền
-    val tongTien = danhSachGioHang.sumOf { (it.giaTien * it.soLuong).toDouble() }
+    val gioHang by if (uid != null) {
+        dao.layTheoNguoiDung(uid).collectAsState(initial = emptyList())
+    } else {
+        remember { mutableStateOf(emptyList()) }
+    }
+    val scope = rememberCoroutineScope()
+
+    val tongTien = gioHang.sumOf {
+        (it.giaTien * it.soLuong).toDouble()
+    }.toFloat()
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Giỏ hàng của bạn") },
-                navigationIcon = {
-                    IconButton(onClick = quayLai) { Icon(Icons.Default.ArrowBack, "Quay lại") }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .height(72.dp)
+                    .background(Color.White)
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = quayLai) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Quay lại",
+                        tint = Color.Black
+                    )
                 }
-            )
+
+                Text(
+                    text = "Giỏ hàng",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.width(48.dp))
+            }
         },
         bottomBar = {
-            if (danhSachGioHang.isNotEmpty()) {
-                BottomAppBar {
+            if (gioHang.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .navigationBarsPadding()
+                        .padding(14.dp)
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Tổng: $tongTien đ",
-                            style = MaterialTheme.typography.titleMedium,
+                            text = "Tổng cộng:",
+                            color = Color.Gray,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            modifier = Modifier.weight(1f)
                         )
-                        Button(onClick = chuyenSangThanhToan) {
-                            Text("Thanh toán")
-                        }
+
+                        Text(
+                            text = "${formatMoneyCart(tongTien)}đ",
+                            color = Color(0xFF064C8C),
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Button(
+                        onClick = chuyenSangThanhToan,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF064C8C)
+                        )
+                    ) {
+                        Text(
+                            text = "TIẾN HÀNH THANH TOÁN",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
         }
-    ) { paddingValues ->
-        if (danhSachGioHang.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("Giỏ hàng đang trống", style = MaterialTheme.typography.titleMedium)
+    ) { padding ->
+        if (gioHang.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(Color(0xFFF7F7FC)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ShoppingCart,
+                        contentDescription = null,
+                        modifier = Modifier.size(90.dp),
+                        tint = Color.LightGray
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Text(
+                        text = "Giỏ hàng của bạn đang trống",
+                        color = Color.Gray,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    Button(
+                        onClick = quayLai,
+                        modifier = Modifier
+                            .width(240.dp)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF064C8C)
+                        )
+                    ) {
+                        Text(
+                            text = "Tiếp tục mua sắm",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         } else {
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                items(danhSachGioHang) { monHang ->
-                    ItemGioHang(monHang)
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(Color(0xFFF7F7FC)),
+                contentPadding = PaddingValues(10.dp)
+            ) {
+                items(gioHang) { item ->
+                    CartItemCard(
+                        item = item,
+                        onDelete = {
+                            scope.launch {
+                                dao.xoa(item)
+                            }
+                        },
+                        onDecrease = {
+                            scope.launch {
+                                if (item.soLuong > 1) {
+                                    dao.capNhat(item.copy(soLuong = item.soLuong - 1))
+                                } else {
+                                    dao.xoa(item)
+                                }
+                            }
+                        },
+                        onIncrease = {
+                            scope.launch {
+                                dao.capNhat(item.copy(soLuong = item.soLuong + 1))
+                            }
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
             }
         }
@@ -75,21 +215,116 @@ fun ManHinhGioHang(
 }
 
 @Composable
-fun ItemGioHang(monHang: GioHang) {
-    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            AsyncImage(
-                model = monHang.hinhAnh ?: "https://via.placeholder.com/150",
-                contentDescription = monHang.tenGiay,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(80.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = monHang.tenGiay, style = MaterialTheme.typography.titleMedium)
-                Text(text = "${monHang.giaTien} đ", color = MaterialTheme.colorScheme.primary)
-                Text(text = "Số lượng: ${monHang.soLuong}")
+fun CartItemCard(
+    item: GioHang,
+    onDelete: () -> Unit,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
+    ) {
+        Box(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.align(Alignment.TopEnd)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Xóa",
+                    tint = Color.Gray
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AsyncImage(
+                    model = item.hinhAnh,
+                    contentDescription = item.tenGiay,
+                    modifier = Modifier
+                        .size(90.dp)
+                        .padding(end = 10.dp),
+                    contentScale = ContentScale.Fit
+                )
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 42.dp)
+                ) {
+                    Text(
+                        text = item.tenGiay,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "Màu sắc: ${item.mauSac ?: "Chưa chọn"}",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        text = "Chọn size: ${item.size ?: "Chưa chọn"}",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "${formatMoneyCart(item.giaTien)}đ",
+                        color = Color(0xFF064C8C),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(4.dp)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onDecrease,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Text("-", fontSize = 22.sp)
+                }
+
+                Text(
+                    text = item.soLuong.toString(),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+
+                IconButton(
+                    onClick = onIncrease,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Text("+", fontSize = 22.sp)
+                }
             }
         }
     }
+}
+
+fun formatMoneyCart(value: Float): String {
+    return "%,.0f".format(value).replace(",", ".")
 }

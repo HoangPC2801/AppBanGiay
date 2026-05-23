@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appbangiay.viewmodel.AuthState
 import com.example.appbangiay.viewmodel.AuthViewModel
-
+import com.example.appbangiay.ui.theme.MauXanhChinh
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -39,7 +39,7 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit
 ) {
     val context = LocalContext.current
-    val primaryBlue = Color(0xFF64A5FF)
+    val primaryBlue = MauXanhChinh
     val grayBackground = Color(0xFFEAEAEA)
 
     var email by remember { mutableStateOf("") }

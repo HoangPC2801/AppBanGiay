@@ -44,6 +44,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.facebook.login.LoginManager
 import com.facebook.AccessToken
+import com.example.appbangiay.ui.theme.MauXanhChinh
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.zIndex
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,10 +55,11 @@ fun LoginScreen(
     viewModel: AuthViewModel, // Thêm ViewModel vào đây
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
+    quayVeTrangChu: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
     val context = LocalContext.current
-    val primaryBlue = Color(0xFF64A5FF)
+    val primaryBlue = MauXanhChinh
     val grayBackground = Color(0xFFEAEAEA)
 
     var email by remember { mutableStateOf("") }
@@ -126,6 +131,28 @@ fun LoginScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .zIndex(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = {
+                    quayVeTrangChu()
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Trang chủ",
+                    tint = Color.White,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+        }
+
         // --- 1. VẼ ĐƯỜNG SÓNG TRÊN VÀ DƯỚI (Tái sử dụng từ Splash/Intro) ---
         Canvas(modifier = Modifier.fillMaxWidth().height(220.dp).align(Alignment.TopCenter)) {
             val path = Path().apply {
@@ -348,6 +375,7 @@ fun LoginScreenPreview() {
         viewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
         onNavigateToRegister = {},
         onNavigateToForgotPassword = {},
+        quayVeTrangChu = {},
         onLoginSuccess = {}
     )
 }

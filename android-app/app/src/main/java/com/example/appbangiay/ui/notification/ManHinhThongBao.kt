@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appbangiay.ui.theme.MauXanhChinh
 
 data class NotificationItem(
     val title: String,
@@ -25,7 +26,7 @@ data class NotificationItem(
 
 @Composable
 fun ManHinhThongBao() {
-    val primaryBlue = Color(0xFF67A8F8)
+    val primaryBlue = MauXanhChinh
     val backgroundGray = Color(0xFFEFEFEF)
 
     val notifications = listOf(

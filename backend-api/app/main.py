@@ -36,4 +36,4 @@ app.include_router(firebase_users.router)
 
 @app.get("/")
 def home():
-    return {"message": "API BizFlow đang chạy. Truy cập /docs để xem tài liệu."}
+    return {"message": "API HoangShoes đang chạy. Truy cập /docs để xem tài liệu."}

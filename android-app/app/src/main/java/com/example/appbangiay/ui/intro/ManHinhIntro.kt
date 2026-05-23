@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import com.example.appbangiay.R
+import com.example.appbangiay.ui.theme.MauXanhChinh
 
 // Cấu trúc dữ liệu cho mỗi trang Intro
 data class IntroPage(
@@ -57,7 +58,7 @@ val introPages = listOf(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun IntroScreen(onFinishIntro: () -> Unit) {
-    val primaryBlue = Color(0xFF64A5FF)
+    val primaryBlue = MauXanhChinh
     val inactiveGray = Color(0xFFD9D9D9)
 
     // Quản lý trạng thái của Pager (Vuốt qua lại)
