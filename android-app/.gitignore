@@ -1,5 +1,3 @@
-*.iml
-.gradle
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -13,3 +11,45 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+
+# NDK
+obj/
+
+# Gradle & Build files
+.gradle
+/build/
+*/build/
+captures/
+
+# Local configuration file (chứa đường dẫn SDK máy cá nhân, tuyệt đối không push)
+local.properties
+
+# IntelliJ / Android Studio IDEA files
+.idea/
+*.iml
+*.iws
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/caches
+.idea/modules.xml
+.idea/navEditor.xml
+
+# Keystore files (Tuyệt đối không push file chữ ký release lên để tránh bị mất quyền kiểm soát app)
+*.jks
+*.keystore
+
+# External native build folder generated in Android Studio
+.cxx/
+.externalNativeBuild/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# (Tùy chọn) Firebase config - Tùy thuộc dự án có bảo mật khắt khe không
+# google-services.json
