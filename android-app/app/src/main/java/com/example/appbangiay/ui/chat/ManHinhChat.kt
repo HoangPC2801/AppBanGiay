@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Home
@@ -102,7 +104,7 @@ fun ManHinhChat() {
             Spacer(modifier = Modifier.width(14.dp))
 
             Icon(
-                imageVector = Icons.Outlined.ShoppingCart,
+                imageVector = Icons.Default.ShoppingCart,
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(28.dp)

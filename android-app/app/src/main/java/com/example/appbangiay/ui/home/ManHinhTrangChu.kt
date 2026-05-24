@@ -61,7 +61,7 @@ fun ManHinhTrangChu(
 
                 // LOGO
                 Image(
-                    painter = painterResource(id = R.drawable.logo_hoangshoe2),
+                    painter = painterResource(id = R.drawable.logo4),
                     contentDescription = "Logo",
                     modifier = Modifier
                         .height(55.dp)
