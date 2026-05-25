@@ -9,11 +9,30 @@ router = APIRouter(
     tags=["Products"] 
 )
 
+def tinh_giam_gia(price, original_price):
+    price = float(price or 0)
+    original_price = float(original_price or 0)
+
+    if original_price <= 0:
+        original_price = price
+
+    if original_price > price and price > 0:
+        discount_percent = round(
+            100 - (price / original_price * 100)
+        )
+    else:
+        discount_percent = 0
+
+    return original_price, discount_percent
+
 @router.get("/", response_model=List[schemas.Product])
 def get_all_products(db: Session = Depends(database.get_db)):
     products = (
         db.query(models.Product)
-        .options(joinedload(models.Product.variants))
+        .options(
+            joinedload(models.Product.variants),
+            joinedload(models.Product.images)
+        )
         .all()
     )
     return products
@@ -22,7 +41,10 @@ def get_all_products(db: Session = Depends(database.get_db)):
 def get_product(product_id: int, db: Session = Depends(get_db)):
     product = (
         db.query(models.Product)
-        .options(joinedload(models.Product.variants))
+        .options(
+            joinedload(models.Product.variants),
+            joinedload(models.Product.images)
+        )
         .filter(models.Product.id == product_id)
         .first()
     )
@@ -34,8 +56,19 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=schemas.ProductResponse)
 def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
-    product_data = product.model_dump(exclude={"variants"})
+    product_data = product.model_dump(
+        exclude={"variants", "images"}
+    )
     variants_data = product.variants or []
+    images_data = product.images or []
+
+    original_price, discount_percent = tinh_giam_gia(
+        price=product_data.get("price"),
+        original_price=product_data.get("original_price")
+    )
+
+    product_data["original_price"] = original_price
+    product_data["discount_percent"] = discount_percent
 
     new_product = models.Product(**product_data)
 
@@ -51,6 +84,16 @@ def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)
             stock_quantity=variant.stock_quantity or 0
         )
         db.add(new_variant)
+
+    for index, img in enumerate(images_data):
+
+        new_image = models.ProductImage(
+            product_id=new_product.id,
+            image_url=img.image_url,
+            sort_order=img.sort_order or index
+        )
+
+        db.add(new_image)
 
     db.commit()
     db.refresh(new_product)
@@ -83,10 +126,24 @@ def update_product(product_id: int, product: schemas.ProductUpdate, db: Session 
             detail="Không tìm thấy sản phẩm"
         )
 
-    update_data = product.model_dump(exclude_unset=True, exclude={"variants"})
+    update_data = product.model_dump(
+        exclude_unset=True,
+        exclude={"variants", "images"}
+    )
 
     for key, value in update_data.items():
         setattr(db_product, key, value)
+
+    price_hien_tai = getattr(db_product, "price", 0)
+    gia_goc_hien_tai = getattr(db_product, "original_price", 0)
+
+    original_price, discount_percent = tinh_giam_gia(
+        price=price_hien_tai,
+        original_price=gia_goc_hien_tai
+    )
+
+    db_product.original_price = original_price
+    db_product.discount_percent = discount_percent
 
     if product.variants is not None:
         db.query(models.ProductVariant).filter(
@@ -101,6 +158,22 @@ def update_product(product_id: int, product: schemas.ProductUpdate, db: Session 
                 stock_quantity=variant.stock_quantity or 0
             )
             db.add(new_variant)
+
+    if product.images is not None:
+
+        db.query(models.ProductImage).filter(
+            models.ProductImage.product_id == product_id
+        ).delete()
+
+        for index, img in enumerate(product.images):
+
+            new_image = models.ProductImage(
+                product_id=product_id,
+                image_url=img.image_url,
+                sort_order=img.sort_order or index
+            )
+
+            db.add(new_image)
 
     db.commit()
     db.refresh(db_product)

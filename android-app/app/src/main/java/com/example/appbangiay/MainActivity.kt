@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import com.example.appbangiay.ui.about.ManHinhVeHoangShoe
 import com.example.appbangiay.ui.support.ManHinhTrungTamHoTro
 import com.example.appbangiay.ui.settings.ManHinhCaiDatTaiKhoan
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,7 +81,8 @@ fun AppNavigation() {
     val gioHangDao = db.gioHangDao()
     val diaChiDao = db.diaChiDao()
     val yeuThichDao = db.yeuThichDao()
-    // SỬA: Thay đổi startDestination thành "splash_screen"
+    val reviewCacheDao = db.reviewCacheDao()
+
     NavHost(navController = navController, startDestination = "splash_screen") {
 
         // 1. Màn hình Splash
@@ -230,6 +232,7 @@ fun AppNavigation() {
                 maGiay = maGiay,
                 dao = gioHangDao,
                 yeuThichDao = yeuThichDao,
+                reviewCacheDao = reviewCacheDao,
                 quayLai = { navController.popBackStack() },
                 chuyenSangGioHang = {
                     navController.navigate("cart_screen")

@@ -4,6 +4,7 @@ from .database import engine
 from . import models
 from .routers import products, categories, cart, orders, users, admins, dashboard
 from .routers import firebase_users
+from .routers import reviews
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -33,6 +34,7 @@ app.include_router(users.router)
 app.include_router(admins.router)
 app.include_router(dashboard.router)
 app.include_router(firebase_users.router)
+app.include_router(reviews.router)
 
 @app.get("/")
 def home():

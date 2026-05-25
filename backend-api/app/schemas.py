@@ -32,15 +32,25 @@ class ProductVariantOut(ProductVariantBase):
     class Config:
         from_attributes = True
 
+class ProductImageCreate(BaseModel):
+    image_url: str
+    sort_order: Optional[int] = 0
+
+
+class ProductImageOut(ProductImageCreate):
+    id: int
+    product_id: int
+
+    class Config:
+        from_attributes = True
+
 class ProductBase(BaseModel):
     name: str
     price: float
     description: Optional[str] = None
     
-    # ⚠️ QUAN TRỌNG: Sửa thành 'image' (không dùng image_url nữa)
     image: Optional[str] = None 
-    
-    # Khai báo thêm các trường có trong Database để Web Admin và App có thể đọc được
+    images: Optional[List[ProductImageCreate]] = []
     category: Optional[str] = None
     category_id: Optional[int] = None
 
@@ -48,6 +58,8 @@ class ProductBase(BaseModel):
 
     brand: Optional[str] = None
     color: Optional[str] = None
+    original_price: Optional[float] = 0
+    discount_percent: Optional[int] = 0
     stock_quantity: Optional[int] = 0
     material: Optional[str] = None
     gender: Optional[str] = "Unisex"
@@ -60,6 +72,7 @@ class Product(ProductBase):
     id: int
     category_rel: Optional[Category] = None
     variants: List[ProductVariantOut] = []
+    images: List[ProductImageOut] = []
 
     class Config:
         from_attributes = True
@@ -75,6 +88,7 @@ class ProductResponse(ProductBase):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     variants: List[ProductVariantOut] = []
+    images: List[ProductImageOut] = []
 
     class Config:
         from_attributes = True
@@ -83,6 +97,8 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[float] = None
+    original_price: Optional[float] = None
+    discount_percent: Optional[int] = None
     category: Optional[str] = None
     category_id: Optional[int] = None
     image: Optional[str] = None
@@ -93,6 +109,7 @@ class ProductUpdate(BaseModel):
     style: Optional[str] = None
     is_active: Optional[bool] = None
     variants: Optional[List[ProductVariantCreate]] = None
+    images: Optional[List[ProductImageCreate]] = None
 
 
 # SCHEMAS CHO GIỎ HÀNG
@@ -193,3 +210,46 @@ class AdminOut(AdminBase):
 class AdminLogin(BaseModel):
     username: str
     password: str
+
+class ProductReviewCreate(BaseModel):
+    firebase_uid: str
+    user_name: Optional[str] = None
+    rating: int
+    comment: Optional[str] = None
+    review_image: Optional[str] = None
+
+
+class ProductReviewOut(BaseModel):
+    id: int
+    product_id: int
+    firebase_uid: str
+    user_name: Optional[str] = None
+    rating: int
+    comment: Optional[str] = None
+    review_image: Optional[str] = None
+
+    is_hidden: bool = False
+
+    admin_reply: Optional[str] = None
+    admin_reply_at: Optional[datetime] = None
+
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    like_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class ProductReviewSummary(BaseModel):
+    average_rating: float
+    review_count: int
+    sold_count: int
+    page: int = 1
+    limit: int = 10
+    reviews: List[ProductReviewOut]
+
+class ProductReviewReplyUpdate(BaseModel):
+    reply: str
+

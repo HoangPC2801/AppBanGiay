@@ -11,8 +11,10 @@ data class Giay(
     @SerializedName("category_id") val maDanhMuc: Int?,
     @SerializedName("category") val danhMuc: String? = null,
     @SerializedName("brand") val thuongHieu: String? = null,
-    @SerializedName("variants") val variants: List<BienTheGiay> = emptyList()
-
+    @SerializedName("variants") val variants: List<BienTheGiay> = emptyList(),
+    @SerializedName("original_price") val giaGoc: Float = 0f,
+    @SerializedName("discount_percent") val phanTramGiam: Int = 0,
+    val images: List<AnhSanPham> = emptyList()
 )
 
 data class BienTheGiay(
@@ -21,4 +23,17 @@ data class BienTheGiay(
     @SerializedName("color") val mauSac: String?,
     @SerializedName("size") val size: String?,
     @SerializedName("stock_quantity") val soLuongTon: Int
+)
+
+data class AnhSanPham(
+    val id: Int,
+
+    @SerializedName("product_id")
+    val maSanPham: Int,
+
+    @SerializedName("image_url")
+    val imageUrl: String,
+
+    @SerializedName("sort_order")
+    val thuTu: Int
 )

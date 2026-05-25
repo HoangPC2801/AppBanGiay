@@ -26,6 +26,7 @@ import com.example.appbangiay.database.GioHangDao
 import com.example.appbangiay.model.GioHang
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.foundation.BorderStroke
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -224,6 +225,10 @@ fun CartItemCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(
+            1.dp,
+            Color(0xFFE5E5E5)
+        ),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         )

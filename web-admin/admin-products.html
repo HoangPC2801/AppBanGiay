@@ -103,6 +103,14 @@
                                 <input type="number" class="form-control" id="prod-price" required>
                             </div>
                             
+                            <div class="mb-3">
+                                <label class="form-label">Giá gốc trước giảm</label>
+                                <input type="number" id="productOriginalPrice" class="form-control" placeholder="Ví dụ: 3150000">
+                                <small class="text-muted">
+                                    Nếu để trống, hệ thống sẽ tự lấy bằng giá hiện tại.
+                                </small>
+                            </div>
+
                             <div class="col-md-4">
                                 <label class="form-label">Hình ảnh sản phẩm</label>
                                 <input type="file" class="form-control" id="prod-image-file" accept="image/*" onchange="previewImage(this)">
@@ -111,6 +119,15 @@
                                     <img id="image-preview" src="https://static.nike.com/a/images/t_web_pdp_936_v2/f_auto,u_9ddf04c7-2a9a-4d76-add1-d15af8f0263d,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/1c5d7465-4a44-4aea-8cba-35b566e0a96a/NIKE+PACIFIC.png" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; display: none;">
                                 </div>
                             </div>
+
+                            <div class="col-md-8">
+                                <label class="form-label">Ảnh phụ sản phẩm</label>
+                                <input type="file" class="form-control" id="prod-extra-images" accept="image/*" multiple>
+                                <small class="text-muted">Có thể chọn nhiều ảnh phụ cho trang chi tiết sản phẩm.</small>
+
+                                <div id="extra-image-preview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                            </div>
+
                             <div class="col-md-4">
                                 <label class="form-label">Danh mục</label>
                                 <input type="text" class="form-control" id="prod-category">
@@ -222,6 +239,26 @@
             }
         }
 
+        document.getElementById('prod-extra-images').addEventListener('change', function () {
+            const preview = document.getElementById('extra-image-preview');
+            preview.innerHTML = "";
+
+            Array.from(this.files).forEach(file => {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.innerHTML += `
+                        <img 
+                            src="${e.target.result}" 
+                            style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #ddd;"
+                        >
+                    `;
+                };
+
+                reader.readAsDataURL(file);
+            });
+        });
+
         // 1. Tải danh sách sản phẩm
         async function fetchProducts() {
             try {
@@ -287,8 +324,30 @@
                 tr.innerHTML = `
                     <td>${p.id}</td>
                     <td><img src="${p.image || 'https://via.placeholder.com/50'}" class="product-img" alt="${p.name}"></td>
-                    <td><strong>${p.name}</strong><br><small class="text-muted">${p.brand || ''}</small></td>
-                    <td>${p.price.toLocaleString('vi-VN')} đ</td>
+                    <td>
+                        <strong>${p.name}</strong><br>
+                        <small class="text-muted">${p.brand || ''}</small><br>
+                        <small class="text-primary">
+                            Ảnh phụ: ${(p.images || []).length}
+                        </small>
+                    </td>
+                    <td>
+                        <div class="text-danger fw-bold">
+                            ${Number(p.price || 0).toLocaleString('vi-VN')} đ
+                        </div>
+
+                        ${
+                            p.original_price && p.original_price > p.price
+                            ? `
+                                <small class="text-muted text-decoration-line-through">
+                                    ${Number(p.original_price).toLocaleString('vi-VN')} đ
+                                </small>
+                                <br>
+                                <span class="badge bg-danger">-${p.discount_percent || 0}%</span>
+                            `
+                            : ''
+                        }
+                    </td>
                     <td>${p.category || 'N/A'}</td>
                     <td>${(p.variants || []).reduce((sum, v) => sum + (v.stock_quantity || 0), 0)}</td>
                     <td>
@@ -347,6 +406,8 @@
 
             // reset file input
             document.getElementById('prod-image-file').value = "";
+            document.getElementById('prod-extra-images').value = "";
+            document.getElementById('extra-image-preview').innerHTML = "";
 
             if (id) {
 
@@ -358,6 +419,7 @@
                 document.getElementById('prod-id').value = p.id;
                 document.getElementById('prod-name').value = p.name;
                 document.getElementById('prod-price').value = p.price;
+                document.getElementById('productOriginalPrice').value = p.original_price || p.price || 0;
 
                 // Lưu URL ảnh cũ
                 document.getElementById('prod-image-url').value =
@@ -371,6 +433,19 @@
                     preview.style.display = 'none';
                 }
 
+                const extraPreview = document.getElementById('extra-image-preview');
+                extraPreview.innerHTML = "";
+
+                if (p.images && p.images.length > 0) {
+                    p.images.forEach(img => {
+                        extraPreview.innerHTML += `
+                            <img 
+                                src="${img.image_url}" 
+                                style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #ddd;"
+                            >
+                        `;
+                    });
+                }
                 document.getElementById('prod-category').value =
                     p.category || '';
 
@@ -406,6 +481,8 @@
                     "Thêm Sản Phẩm Mới";
 
                 document.getElementById('productForm').reset();
+                
+                document.getElementById('productOriginalPrice').value = '';
 
                 document.getElementById('prod-id').value = '';
 
@@ -480,16 +557,69 @@
                 }
             }
 
+            const priceValue =
+                parseFloat(document.getElementById('prod-price').value) || 0;
+
+            const extraInput = document.getElementById('prod-extra-images');
+            let extraImages = [];
+
+            // Nếu sửa sản phẩm mà không chọn ảnh phụ mới thì giữ ảnh phụ cũ
+            if (id) {
+                const oldProduct = currentProducts.find(p => p.id == id);
+                if (oldProduct && oldProduct.images) {
+                    extraImages = oldProduct.images.map((img, index) => ({
+                        image_url: img.image_url,
+                        sort_order: img.sort_order ?? index
+                    }));
+                }
+            }
+
+            // Nếu có chọn ảnh phụ mới thì upload và thay toàn bộ ảnh phụ cũ
+            if (extraInput.files && extraInput.files.length > 0) {
+                extraImages = [];
+
+                saveBtn.innerText = "Đang tải ảnh phụ lên...";
+                saveBtn.disabled = true;
+
+                try {
+                    for (let i = 0; i < extraInput.files.length; i++) {
+                        const file = extraInput.files[i];
+
+                        const storageRef = storage.ref(
+                            'products/extra/' + Date.now() + '_' + i + '_' + file.name
+                        );
+
+                        const snapshot = await storageRef.put(file);
+                        const url = await snapshot.ref.getDownloadURL();
+
+                        extraImages.push({
+                            image_url: url,
+                            sort_order: i
+                        });
+                    }
+                } catch (firebaseError) {
+                    console.error("Lỗi upload ảnh phụ:", firebaseError);
+                    alert("Không thể tải ảnh phụ lên Firebase!");
+
+                    saveBtn.innerText = originalBtnText;
+                    saveBtn.disabled = false;
+
+                    return;
+                }
+            }
+
+            const originalPriceValue =
+                parseFloat(document.getElementById('productOriginalPrice').value) || priceValue;
+            
             // data gửi FastAPI
             const data = {
 
                 name:
                     document.getElementById('prod-name').value,
 
-                price:
-                    parseFloat(
-                        document.getElementById('prod-price').value
-                    ) || 0,
+                price: priceValue,
+
+                original_price: originalPriceValue,
 
                 image: finalImageUrl,
 
@@ -516,6 +646,8 @@
                     document.getElementById('prod-desc').value,
 
                 variants: getVariantsFromForm(),
+
+                images: extraImages,
             };
 
             const method = id ? 'PUT' : 'POST';

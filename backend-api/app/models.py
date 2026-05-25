@@ -35,6 +35,8 @@ class Product(Base):
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
     price = Column(DECIMAL(10, 2), nullable=False)
+    original_price = Column(DECIMAL(10, 2), nullable=False, default=0)
+    discount_percent = Column(Integer, nullable=False, default=0)
     image = Column(String(1000), nullable=True) 
     
     category = Column(String(50), nullable=True, index=True)
@@ -50,6 +52,11 @@ class Product(Base):
     color = Column(String(50), nullable=True)
     stock_quantity = Column(Integer, default=0)
     material = Column(String(100), nullable=True)
+    images = relationship(
+    "ProductImage",
+    back_populates="product",
+    cascade="all, delete-orphan"
+    )
     
     # Kiểu Enum cho giới tính
     gender = Column(Enum('Nam', 'Nữ', 'Unisex'), default='Unisex')
@@ -81,6 +88,7 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    firebase_uid = Column(String(128), nullable=True)
     total = Column(Float)
     status = Column(String(20), default="pending")
     shipping_address = Column(Text)
@@ -124,3 +132,63 @@ class Admin(Base):
     password_hash = Column(String(255), nullable=False) # Chú ý: Cột này lưu mật khẩu đã mã hóa
     full_name = Column(String(100), nullable=False)
     role = Column(String(20), nullable=False, default="manager") # Phân quyền: 'manager' hoặc 'superadmin'
+
+class ProductReview(Base):
+    __tablename__ = "product_reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    product_id = Column(
+        Integer,
+        ForeignKey("products.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    firebase_uid = Column(String(128), nullable=False)
+
+    user_name = Column(String(255), nullable=True)
+
+    rating = Column(Integer, nullable=False)
+
+    comment = Column(Text, nullable=True)
+
+    review_image = Column(String(500), nullable=True)
+
+    is_hidden = Column(Boolean, default=False)
+
+    admin_reply = Column(Text, nullable=True)
+
+    admin_reply_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, server_default=func.now())
+
+    updated_at = Column(
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+class ReviewLike(Base):
+    __tablename__ = "review_likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    review_id = Column(
+        Integer,
+        ForeignKey("product_reviews.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    firebase_uid = Column(String(128), nullable=False)
+
+    created_at = Column(DateTime, server_default=func.now())
+
+class ProductImage(Base):
+    __tablename__ = "product_images"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    image_url = Column(String(1000), nullable=False)
+    sort_order = Column(Integer, default=0)
+
+    product = relationship("Product", back_populates="images")

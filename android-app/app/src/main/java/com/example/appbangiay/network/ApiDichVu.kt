@@ -10,6 +10,10 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
+import com.example.appbangiay.model.ProductReviewOut
+import com.example.appbangiay.model.ProductReviewCreate
+import com.example.appbangiay.model.ProductReviewSummary
+import retrofit2.http.Query
 
 // Định nghĩa các endpoint API
 interface ApiDichVu {
@@ -21,6 +25,26 @@ interface ApiDichVu {
 
     @POST("orders/")
     suspend fun taoDonHang(@Body yeuCau: YeuCauDatHang): Response<ResponseBody>
+
+    @GET("products/{productId}/reviews")
+    suspend fun layDanhGiaSanPham(
+        @Path("productId") productId: Int,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 10
+    ): ProductReviewSummary
+
+    @POST("products/{productId}/reviews")
+    suspend fun guiDanhGiaSanPham(
+        @Path("productId") productId: Int,
+        @Body review: ProductReviewCreate
+    ): ProductReviewOut
+
+    @POST("products/reviews/{reviewId}/like")
+    suspend fun likeReview(
+        @Path("reviewId") reviewId: Int,
+        @Query("firebase_uid") firebaseUid: String
+    ): Map<String, Boolean>
+
 }
 
 // Khởi tạo Retrofit Client

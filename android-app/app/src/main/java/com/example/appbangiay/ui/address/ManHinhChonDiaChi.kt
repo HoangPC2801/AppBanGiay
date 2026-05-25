@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.foundation.BorderStroke
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,6 +108,10 @@ fun ManHinhChonDiaChi(
                                     onDiaChiSelected?.invoke(item)
                                 },
                             shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(
+                                1.dp,
+                                Color(0xFFE5E5E5)
+                            ),
                             colors = CardDefaults.cardColors(containerColor = Color.White)
                         ) {
                             Row(

@@ -88,4 +88,6 @@
         implementation("com.google.android.gms:play-services-auth:21.0.0")
         implementation("com.facebook.android:facebook-login:16.3.0")
         implementation("io.coil-kt:coil-compose:2.5.0")
+
+        implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
     }

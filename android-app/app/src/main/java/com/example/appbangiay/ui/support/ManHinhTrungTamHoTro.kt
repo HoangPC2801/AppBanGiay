@@ -81,7 +81,7 @@ fun ManHinhTrungTamHoTro(
                 iconColor = Color(0xFF4CAF50),
                 iconBg = Color(0xFFE9F8EC),
                 title = "Hotline",
-                subtitle = "0973711868 (8:00 - 21:00)"
+                subtitle = "0337999999 (8:00 - 21:00)"
             )
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -91,7 +91,7 @@ fun ManHinhTrungTamHoTro(
                 iconColor = Color(0xFF2196F3),
                 iconBg = Color(0xFFEAF6FF),
                 title = "Email hỗ trợ",
-                subtitle = "support@hoangshoe.vn"
+                subtitle = "support@hoangshoes.vn"
             )
 
             Spacer(modifier = Modifier.height(28.dp))

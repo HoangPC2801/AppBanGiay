@@ -129,16 +129,71 @@
                             ${renderStars(review.rating)}
                         </td>
 
-                        <td style="max-width: 320px;">
-                            ${escapeHtml(review.comment || "Không có nội dung")}
+                        <td style="max-width: 360px;">
+                            <div class="mb-2">
+                                ${escapeHtml(review.comment || "Không có nội dung")}
+                            </div>
+
+                            ${
+                                review.admin_reply
+                                ? `
+                                    <div class="alert alert-info py-2 px-3 mb-2">
+                                        <strong>Phản hồi HoangShoe:</strong><br>
+                                        ${escapeHtml(review.admin_reply)}
+                                    </div>
+                                `
+                                : `
+                                    <div class="text-muted small mb-2">
+                                        Chưa có phản hồi từ admin
+                                    </div>
+                                `
+                            }
+
+                            <textarea
+                                id="reply-${review.id}"
+                                class="form-control form-control-sm mb-2"
+                                rows="2"
+                                placeholder="Nhập phản hồi admin..."
+                            >${escapeHtml(review.admin_reply || "")}</textarea>
+
+                            <button
+                                class="btn btn-sm btn-primary"
+                                onclick="replyReview(${review.id})"
+                            >
+                                Gửi phản hồi
+                            </button>
                         </td>
 
-                        <td>${formatDate(review.created_at)}</td>
+                        <td>
+                            <div>${formatDate(review.created_at)}</div>
+
+                            ${
+                                review.is_hidden
+                                ? `<span class="badge bg-danger mt-1">Đã ẩn</span>`
+                                : `<span class="badge bg-success mt-1">Đang hiển thị</span>`
+                            }
+                        </td>
 
                         <td>
-                            <button class="btn btn-sm btn-danger" onclick="deleteReview(${review.id})">
-                                Xóa
-                            </button>
+                            ${
+                                review.is_hidden
+                                ? `
+                                    <button
+                                        class="btn btn-sm btn-success"
+                                        onclick="showReview(${review.id})"
+                                    >
+                                        Hiện
+                                    </button>
+                                `
+                                : `
+                                    <button
+                                        class="btn btn-sm btn-warning"
+                                        onclick="hideReview(${review.id})"
+                                    >
+                                        Ẩn
+                                    </button>
+                                `
+                            }
                         </td>
                     </tr>
                 `;
@@ -156,31 +211,106 @@
         }
     }
 
-    async function deleteReview(id) {
-        if (!confirm("Bạn có chắc chắn muốn xóa đánh giá này?")) return;
+    async function hideReview(id) {
+
+        if (!confirm("Ẩn đánh giá này?")) return;
 
         try {
-            const response = await fetch(`${API_BASE}/products/reviews/admin/${id}`, {
-                method: "DELETE"
-            });
+
+            const response = await fetch(
+                `${API_BASE}/products/reviews/admin/${id}/hide`,
+                {
+                    method: "PATCH"
+                }
+            );
 
             if (!response.ok) {
-                alert("Xóa đánh giá thất bại!");
+                alert("Ẩn đánh giá thất bại!");
                 return;
             }
 
-            alert("Đã xóa đánh giá!");
+            alert("Đã ẩn đánh giá");
+
             loadReviews();
 
         } catch (error) {
+
             console.error(error);
-            alert("Lỗi kết nối Server!");
+
+            alert("Lỗi kết nối server");
+        }
+    }
+
+    async function showReview(id) {
+
+        if (!confirm("Hiện lại đánh giá này?")) return;
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE}/products/reviews/admin/${id}/show`,
+                {
+                    method: "PATCH"
+                }
+            );
+
+            if (!response.ok) {
+                alert("Hiện đánh giá thất bại!");
+                return;
+            }
+
+            alert("Đã hiện lại đánh giá");
+
+            loadReviews();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Lỗi kết nối server");
         }
     }
 
     window.onload = () => {
         loadReviews();
     };
+
+    async function replyReview(id) {
+        const textarea = document.getElementById(`reply-${id}`);
+        const reply = textarea.value.trim();
+
+        if (!reply) {
+            alert("Vui lòng nhập phản hồi");
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${API_BASE}/products/reviews/admin/${id}/reply`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        reply: reply
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                alert("Phản hồi thất bại");
+                return;
+            }
+
+            alert("Đã phản hồi đánh giá");
+            loadReviews();
+
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi kết nối server");
+        }
+    }
 </script>
 
 <script src="layout.js"></script>
