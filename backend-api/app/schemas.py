@@ -60,6 +60,8 @@ class ProductBase(BaseModel):
     color: Optional[str] = None
     original_price: Optional[float] = 0
     discount_percent: Optional[int] = 0
+    average_rating: Optional[float] = 5.0
+    sold_count: Optional[int] = 0
     stock_quantity: Optional[int] = 0
     material: Optional[str] = None
     gender: Optional[str] = "Unisex"

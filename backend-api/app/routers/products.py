@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 from typing import List
 from .. import models, schemas, database
 from ..database import get_db
@@ -35,6 +36,27 @@ def get_all_products(db: Session = Depends(database.get_db)):
         )
         .all()
     )
+    for product in products:
+
+        avg_rating = (
+            db.query(func.avg(models.ProductReview.rating))
+            .filter(
+                models.ProductReview.product_id == product.id,
+                models.ProductReview.is_hidden == False
+            )
+            .scalar()
+        )
+
+        product.average_rating = round(avg_rating or 5.0, 1)
+
+        sold_count = (
+            db.query(func.sum(models.OrderDetail.quantity))
+            .filter(models.OrderDetail.product_id == product.id)
+            .scalar()
+        )
+
+        product.sold_count = sold_count or 0
+
     return products
 
 @router.get("/{product_id}", response_model=schemas.Product)
@@ -51,6 +73,25 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+
+    avg_rating = (
+        db.query(func.avg(models.ProductReview.rating))
+        .filter(
+            models.ProductReview.product_id == product.id,
+            models.ProductReview.is_hidden == False
+        )
+        .scalar()
+    )
+
+    product.average_rating = round(avg_rating or 5.0, 1)
+
+    sold_count = (
+        db.query(func.sum(models.OrderDetail.quantity))
+        .filter(models.OrderDetail.product_id == product.id)
+        .scalar()
+    )
+
+    product.sold_count = sold_count or 0
 
     return product
 

@@ -303,7 +303,6 @@ fun BrandItem(
     }
 }
 
-// THÊM THAM SỐ GIAY VÀO ĐÂY
 @Composable
 fun ProductCard(
     giay: Giay,

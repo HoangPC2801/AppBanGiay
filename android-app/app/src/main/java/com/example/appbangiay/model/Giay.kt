@@ -14,7 +14,11 @@ data class Giay(
     @SerializedName("variants") val variants: List<BienTheGiay> = emptyList(),
     @SerializedName("original_price") val giaGoc: Float = 0f,
     @SerializedName("discount_percent") val phanTramGiam: Int = 0,
-    val images: List<AnhSanPham> = emptyList()
+    val images: List<AnhSanPham> = emptyList(),
+    @SerializedName("average_rating")
+    val averageRating: Double? = 5.0,
+    @SerializedName("sold_count")
+    val soldCount: Int? = 0,
 )
 
 data class BienTheGiay(
