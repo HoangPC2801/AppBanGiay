@@ -26,6 +26,14 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.appbangiay.ui.theme.MauXanhChinh
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextDecoration
+import com.example.appbangiay.ui.components.ProductCard
+import androidx.compose.ui.draw.shadow
+import androidx.compose.runtime.collectAsState
+import com.google.firebase.auth.FirebaseAuth
+import com.example.appbangiay.ui.components.CartIconWithBadge
+import com.example.appbangiay.database.GioHangDao
+
 @Composable
 fun ManHinhTrangChu(
     chuyenSangChiTiet: (Int) -> Unit,
@@ -33,13 +41,22 @@ fun ManHinhTrangChu(
     chuyenSangDanhMuc: (String) -> Unit,
     chuyenSangTimKiem: () -> Unit,
     chuyenSangGioHang: () -> Unit,
+    gioHangDao: GioHangDao,
     viewModel: TrangChuViewModel = viewModel()
 ) {
     val primaryBlue = MauXanhChinh
 
     val danhSachGiay by viewModel.danhSachGiay.collectAsState()
     val dangTai by viewModel.trangThaiTai.collectAsState()
+    val firebaseUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+    val soLuongGioHang by gioHangDao
+        .layTongSoLuongGioHang(firebaseUid)
+        .collectAsState(initial = 0)
     var hienBangDanhMuc by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        viewModel.taiLaiSanPham()
+    }
 
     Column(
         modifier = Modifier
@@ -89,18 +106,13 @@ fun ManHinhTrangChu(
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    IconButton(
+                    CartIconWithBadge(
+                        soLuong = soLuongGioHang,
                         onClick = {
                             chuyenSangGioHang()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ShoppingCart,
-                            contentDescription = "Cart",
-                            tint = Color.White,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
+                        },
+                        iconColor = Color.White
+                    )
                 }
             }
         }
@@ -276,7 +288,7 @@ fun BrandItem(
             ),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 2.dp
-            )
+            ),
         ) {
 
             Box(
@@ -303,89 +315,6 @@ fun BrandItem(
     }
 }
 
-@Composable
-fun ProductCard(
-    giay: Giay,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-
-    val formatter = DecimalFormat("#,###")
-    val giaDaFormat = formatter.format(giay.giaTien)
-
-    Card(
-        modifier = modifier.clickable {
-            onClick()
-        },
-
-        shape = RoundedCornerShape(14.dp),
-
-        border = BorderStroke(
-            1.dp,
-            Color(0xFFE5E5E5)
-        ),
-
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        ),
-
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        )
-    ) {
-
-        Column {
-
-            AsyncImage(
-                model = giay.hinhAnh,
-                contentDescription = null,
-
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp)
-                    .padding(10.dp),
-
-                contentScale = ContentScale.Fit
-            )
-
-            Text(
-                text = giay.tenGiay,
-
-                modifier = Modifier
-                    .padding(horizontal = 10.dp)
-                    .height(46.dp),
-
-                maxLines = 2,
-
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-
-                fontWeight = FontWeight.Bold,
-
-                fontSize = 16.sp,
-
-                color = Color(0xFF222222)
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = "${giaDaFormat}đ",
-
-                modifier = Modifier.padding(
-                    start = 10.dp,
-                    bottom = 12.dp
-                ),
-
-                color = Color.Red,
-
-                fontWeight = FontWeight.Bold,
-
-                fontSize = 18.sp
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BangTatCaDanhMuc(
@@ -408,7 +337,7 @@ fun BangTatCaDanhMuc(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = "Tất cả danh mục",
@@ -471,7 +400,7 @@ fun BangTatCaDanhMuc(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 SheetItem("Sneaker", R.drawable.ic_sneaker) {
                     onCategoryClick("Sneaker")
@@ -510,6 +439,10 @@ fun SheetItem(
         Box(
             modifier = Modifier
                 .size(68.dp)
+                .shadow(
+                    elevation = 6.dp,
+                    shape = RoundedCornerShape(16.dp)
+                )
                 .clip(RoundedCornerShape(16.dp))
                 .background(Color.White)
                 .border(1.dp, Color(0xFFEAEAEA), RoundedCornerShape(16.dp)),

@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.text.style.TextOverflow
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.BorderStroke
+import com.example.appbangiay.network.KetNoiServer
 
 @Composable
 fun ManHinhYeuThich(
@@ -40,6 +41,30 @@ fun ManHinhYeuThich(
         .collectAsState(initial = emptyList())
 
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(danhSach) {
+        if (uid.isNotBlank()) {
+            danhSach.forEach { item ->
+                try {
+                    val spMoi = KetNoiServer.api.layChiTietGiay(item.maGiay)
+
+                    dao.capNhatThongTinYeuThich(
+                        firebaseUid = uid,
+                        maGiay = item.maGiay,
+                        tenGiay = spMoi.tenGiay,
+                        giaTien = spMoi.giaTien,
+                        hinhAnh = spMoi.hinhAnh,
+                        giaGoc = spMoi.giaGoc,
+                        phanTramGiam = spMoi.phanTramGiam,
+                        averageRating = spMoi.averageRating,
+                        soldCount = spMoi.soldCount
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -122,50 +147,60 @@ fun ManHinhYeuThich(
                 items(danhSach) { item ->
 
                     Card(
-                        shape = RoundedCornerShape(14.dp),
-
-                        border = BorderStroke(
-                            1.dp,
-                            Color(0xFFE5E5E5)
-                        ),
-
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 2.dp
-                        ),
-
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White
-                        )
+                        modifier = Modifier
+                            .height(245.dp)
+                            .clickable {
+                                moChiTiet(item.maGiay)
+                            },
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, Color(0xFFE5E5E5)),
+                        elevation = CardDefaults.cardElevation(3.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
-
-                        Column {
-
-                            Box {
-
+                        Column(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(160.dp)
+                            ) {
                                 AsyncImage(
                                     model = item.hinhAnh,
-                                    contentDescription = null,
+                                    contentDescription = item.tenGiay,
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(150.dp),
-                                    contentScale = ContentScale.Fit
+                                        .fillMaxSize()
+                                        .padding(10.dp),
+                                    contentScale = ContentScale.Crop
                                 )
 
                                 Box(
                                     modifier = Modifier
-                                        .padding(10.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.Red)
-                                        .padding(
-                                            horizontal = 10.dp,
-                                            vertical = 4.dp
+                                        .align(Alignment.TopStart)
+                                        .background(
+                                            Color.Red,
+                                            RoundedCornerShape(bottomEnd = 12.dp)
                                         )
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
-                                    Text(
-                                        text = "-5%",
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                    if (item.phanTramGiam > 0) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.TopStart)
+                                                .background(
+                                                    Color.Red,
+                                                    RoundedCornerShape(bottomEnd = 12.dp)
+                                                )
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = "-${item.phanTramGiam}%",
+                                                color = Color.White,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
                                 }
 
                                 IconButton(
@@ -188,62 +223,56 @@ fun ManHinhYeuThich(
 
                             Column(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(12.dp)
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
                             ) {
-
                                 Text(
                                     text = item.tenGiay,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.height(46.dp)
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = Color(0xFF222222),
+                                    lineHeight = 16.sp
                                 )
 
-                                Spacer(modifier = Modifier.height(10.dp))
+                                Spacer(modifier = Modifier.height(6.dp))
 
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = "${formatMoney(item.giaTien)}đ",
-                                        color = Color(0xFF064C8C),
+                                        color = Color(0xFFE53935),
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.weight(1f)
+                                        fontSize = 16.sp
                                     )
 
-                                    Text(
-                                        text = "${formatMoney(item.giaTien * 1.1f)}đ",
-                                        color = Color.Gray,
-                                        fontSize = 13.sp,
-                                        textDecoration = TextDecoration.LineThrough,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.width(70.dp)
-                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+
+                                    if (item.giaGoc > item.giaTien) {
+                                        Spacer(modifier = Modifier.width(6.dp))
+
+                                        Text(
+                                            text = "${formatMoney(item.giaGoc)}đ",
+                                            color = Color.Gray,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            textDecoration = TextDecoration.LineThrough,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
                                 }
 
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(6.dp))
 
-                                OutlinedButton(
-                                    onClick = {
-                                        moChiTiet(item.maGiay)
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(44.dp)
-                                ) {
-                                    Text(
-                                        text = "Thêm vào giỏ",
-                                        color = Color(0xFF064C8C),
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
+                                Text(
+                                    text = "⭐ ${String.format("%.1f", item.averageRating ?: 5.0)}   Đã bán ${item.soldCount ?: 0}",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Gray
+                                )
                             }
                         }
                     }

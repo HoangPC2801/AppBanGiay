@@ -150,7 +150,10 @@ fun ContactCard(
             1.dp,
             Color(0xFFE5E5E5)
         ),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
     ) {
         Row(
             modifier = Modifier
@@ -166,7 +169,10 @@ fun ContactCard(
                     1.dp,
                     Color(0xFFE5E5E5)
                 ),
-                colors = CardDefaults.cardColors(containerColor = iconBg)
+                colors = CardDefaults.cardColors(containerColor = iconBg),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 2.dp
+                )
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -226,7 +232,10 @@ fun FaqItem(
             1.dp,
             Color(0xFFE5E5E5)
         ),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
     ) {
         Column(
             modifier = Modifier.padding(18.dp)

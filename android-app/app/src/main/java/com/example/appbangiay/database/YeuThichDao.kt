@@ -49,4 +49,28 @@ interface YeuThichDao {
         firebaseUid: String,
         maGiay: Int
     )
+
+    @Query("""
+    UPDATE bang_yeu_thich
+    SET tenGiay = :tenGiay,
+        giaTien = :giaTien,
+        hinhAnh = :hinhAnh,
+        giaGoc = :giaGoc,
+        phanTramGiam = :phanTramGiam,
+        averageRating = :averageRating,
+        soldCount = :soldCount
+    WHERE maGiay = :maGiay
+    AND firebaseUid = :firebaseUid
+    """)
+    suspend fun capNhatThongTinYeuThich(
+        firebaseUid: String,
+        maGiay: Int,
+        tenGiay: String,
+        giaTien: Float,
+        hinhAnh: String?,
+        giaGoc: Float,
+        phanTramGiam: Int,
+        averageRating: Double?,
+        soldCount: Int?
+    )
 }

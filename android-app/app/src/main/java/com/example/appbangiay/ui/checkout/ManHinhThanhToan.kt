@@ -136,7 +136,10 @@ fun ManHinhThanhToan(
                             chonDiaChi()
                         },
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 2.dp
+                    )
                 ) {
                     Row(
                         modifier = Modifier
@@ -183,7 +186,10 @@ fun ManHinhThanhToan(
             item {
                 Card(
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 2.dp
+                    )
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         danhSach.forEach { item ->
@@ -199,7 +205,10 @@ fun ManHinhThanhToan(
 
                 Card(
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 2.dp
+                    )
                 ) {
                     Row(
                         modifier = Modifier
@@ -226,7 +235,10 @@ fun ManHinhThanhToan(
 
                 Card(
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 2.dp
+                    )
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         PaymentOption(
@@ -285,7 +297,10 @@ fun ManHinhThanhToan(
             item {
                 Card(
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 2.dp
+                    )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         SummaryRow("Tạm tính", "${formatMoneyCheckout(tamTinh)}đ")

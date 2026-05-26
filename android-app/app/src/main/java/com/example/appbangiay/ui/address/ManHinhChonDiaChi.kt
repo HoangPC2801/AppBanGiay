@@ -112,7 +112,10 @@ fun ManHinhChonDiaChi(
                                 1.dp,
                                 Color(0xFFE5E5E5)
                             ),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 2.dp
+                            )
                         ) {
                             Row(
                                 modifier = Modifier.padding(16.dp),

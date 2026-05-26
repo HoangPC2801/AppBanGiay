@@ -16,7 +16,7 @@ import com.example.appbangiay.model.ReviewCache
         SanPhamYeuThich::class,
         ReviewCache::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class HeThongDatabase : RoomDatabase() {

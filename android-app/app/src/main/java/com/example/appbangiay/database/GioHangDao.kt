@@ -24,4 +24,27 @@ interface GioHangDao {
 
     @Query("DELETE FROM bang_gio_hang")
     suspend fun xoaTatCa()
+
+    @Query("""
+    SELECT COALESCE(SUM(soLuong), 0)
+    FROM bang_gio_hang
+    WHERE firebaseUid = :firebaseUid
+    """)
+    fun layTongSoLuongGioHang(firebaseUid: String): Flow<Int>
+
+    @Query("""
+    UPDATE bang_gio_hang
+    SET tenGiay = :tenGiay,
+        giaTien = :giaTien,
+        hinhAnh = :hinhAnh
+    WHERE maGiay = :maGiay
+    AND firebaseUid = :firebaseUid
+    """)
+    suspend fun capNhatThongTinSanPhamTrongGioHang(
+        firebaseUid: String,
+        maGiay: Int,
+        tenGiay: String,
+        giaTien: Float,
+        hinhAnh: String?
+    )
 }

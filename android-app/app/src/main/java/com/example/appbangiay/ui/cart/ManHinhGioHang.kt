@@ -27,6 +27,7 @@ import com.example.appbangiay.model.GioHang
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.BorderStroke
+import com.example.appbangiay.network.KetNoiServer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +44,25 @@ fun ManHinhGioHang(
         remember { mutableStateOf(emptyList()) }
     }
     val scope = rememberCoroutineScope()
+    LaunchedEffect(gioHang) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@LaunchedEffect
+
+        gioHang.forEach { item ->
+            try {
+                val spMoi = KetNoiServer.api.layChiTietGiay(item.maGiay)
+
+                dao.capNhatThongTinSanPhamTrongGioHang(
+                    firebaseUid = uid,
+                    maGiay = item.maGiay,
+                    tenGiay = spMoi.tenGiay,
+                    giaTien = spMoi.giaTien,
+                    hinhAnh = spMoi.hinhAnh
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     val tongTien = gioHang.sumOf {
         (it.giaTien * it.soLuong).toDouble()
@@ -231,6 +251,9 @@ fun CartItemCard(
         ),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
         )
     ) {
         Box(

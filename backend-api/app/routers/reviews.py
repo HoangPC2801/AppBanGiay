@@ -46,14 +46,7 @@ def get_product_reviews(
 
     sold_count = (
         db.query(func.sum(models.OrderDetail.quantity))
-        .join(
-            models.Order,
-            models.OrderDetail.order_id == models.Order.id
-        )
-        .filter(
-            models.OrderDetail.product_id == product_id,
-            models.Order.status == "completed"
-        )
+        .filter(models.OrderDetail.product_id == product_id)
         .scalar()
     ) or 0
 

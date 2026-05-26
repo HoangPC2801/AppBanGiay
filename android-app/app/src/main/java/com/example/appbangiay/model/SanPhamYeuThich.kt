@@ -14,5 +14,10 @@ data class SanPhamYeuThich(
     val maGiay: Int,
     val tenGiay: String,
     val giaTien: Float,
-    val hinhAnh: String?
+    val hinhAnh: String?,
+
+    val giaGoc: Float = 0f,
+    val phanTramGiam: Int = 0,
+    val averageRating: Double? = 5.0,
+    val soldCount: Int? = 0
 )

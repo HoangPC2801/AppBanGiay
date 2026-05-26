@@ -203,7 +203,10 @@ fun ManHinhVeHoangShoe(
                     Color(0xFFE5E5E5)
                 ),
                 shape = RoundedCornerShape(26.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 2.dp
+                )
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -218,6 +221,9 @@ fun ManHinhVeHoangShoe(
                         ),
                         colors = CardDefaults.cardColors(
                             containerColor = Color(0xFFEAF3FF)
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 2.dp
                         )
                     ) {
                         Box(
@@ -276,7 +282,10 @@ fun CamKetCard(
             Color(0xFFE5E5E5)
         ),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
     ) {
         Column(
             modifier = Modifier.fillMaxSize().padding(14.dp),

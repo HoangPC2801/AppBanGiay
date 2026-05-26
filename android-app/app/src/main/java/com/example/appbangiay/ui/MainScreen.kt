@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.size
-
+import com.example.appbangiay.database.GioHangDao
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     object Home : BottomNavItem("home", Icons.Default.Home, "Trang chủ")
@@ -42,7 +42,8 @@ fun MainScreen(
     onNavigateToAbout: () -> Unit,
     onNavigateToSupport: () -> Unit,
     onNavigateToAccountSettings: () -> Unit,
-    isLoggedIn: Boolean
+    isLoggedIn: Boolean,
+    gioHangDao: GioHangDao
 ) {
     var selectedItem by rememberSaveable { mutableStateOf(0) }
     val primaryBlue = MauXanhChinh
@@ -110,7 +111,8 @@ fun MainScreen(
                     chuyenSangThuongHieu = onNavigateToBrand,
                     chuyenSangDanhMuc = onNavigateToCategory,
                     chuyenSangTimKiem = onNavigateToSearch,
-                    chuyenSangGioHang = onNavigateToCart
+                    chuyenSangGioHang = onNavigateToCart,
+                    gioHangDao = gioHangDao
                 )
                 1 -> ManHinhChat()
                 2 -> ManHinhThongBao()

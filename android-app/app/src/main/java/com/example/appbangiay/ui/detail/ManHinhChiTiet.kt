@@ -63,6 +63,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.collectAsState
+import com.example.appbangiay.ui.components.CartIconWithBadge
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -77,7 +79,8 @@ fun ManHinhChiTiet(
     quayLai: () -> Unit,
     chuyenSangGioHang: () -> Unit,
     yeuCauDangNhap: () -> Unit,
-    muaNgay: () -> Unit = {}
+    muaNgay: () -> Unit = {},
+    gioHangDao: GioHangDao
 ) {
     val viewModel: ChiTietGiayViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
@@ -87,6 +90,12 @@ fun ManHinhChiTiet(
             }
         }
     )
+
+    val firebaseUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+    val soLuongGioHang by gioHangDao
+        .layTongSoLuongGioHang(firebaseUid)
+        .collectAsState(initial = 0)
 
     val giay by viewModel.giayChiTiet.collectAsState()
     val dangTai by viewModel.trangThaiTai.collectAsState()
@@ -184,7 +193,7 @@ fun ManHinhChiTiet(
                     .statusBarsPadding()
                     .height(64.dp)
                     .background(Color.White)
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -192,17 +201,18 @@ fun ManHinhChiTiet(
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Quay lại",
-                        tint = Color(0xFF064C8C)
+                        tint = Color(0xFF064C8C),
+                        modifier = Modifier.size(30.dp)
                     )
                 }
 
-                IconButton(onClick = chuyenSangGioHang) {
-                    Icon(
-                        imageVector = Icons.Default.ShoppingCart,
-                        contentDescription = "Giỏ hàng",
-                        tint = Color(0xFF064C8C)
-                    )
-                }
+                CartIconWithBadge(
+                    soLuong = soLuongGioHang,
+                    onClick = {
+                        chuyenSangGioHang()
+                    },
+                    iconColor = Color(0xFF064C8C)
+                )
             }
         },
         bottomBar = {
@@ -458,7 +468,12 @@ fun ManHinhChiTiet(
                                                         maGiay = product.maGiay,
                                                         tenGiay = product.tenGiay,
                                                         giaTien = product.giaTien,
-                                                        hinhAnh = product.hinhAnh
+                                                        hinhAnh = product.hinhAnh,
+
+                                                        giaGoc = product.giaGoc,
+                                                        phanTramGiam = product.phanTramGiam,
+                                                        averageRating = product.averageRating,
+                                                        soldCount = product.soldCount
                                                     )
                                                 )
 
@@ -937,13 +952,13 @@ fun BottomActionBar(
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             OutlinedButton(
                 onClick = onCartClick,
                 modifier = Modifier
                     .height(56.dp)
-                    .width(120.dp),
+                    .width(100.dp),
                 shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(1.dp, Color(0xFFE53935))
             ) {
@@ -954,7 +969,7 @@ fun BottomActionBar(
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             Button(
                 onClick = onBuyNowClick,

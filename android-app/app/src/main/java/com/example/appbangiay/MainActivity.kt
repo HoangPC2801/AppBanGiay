@@ -209,7 +209,8 @@ fun AppNavigation() {
                 onNavigateToAccountSettings = {
                     navController.navigate(Screen.AccountSettings.route)
                 },
-                isLoggedIn = daDangNhap()
+                isLoggedIn = daDangNhap(),
+                gioHangDao = gioHangDao
             )
         }
 
@@ -239,7 +240,11 @@ fun AppNavigation() {
                 },
                 yeuCauDangNhap = {
                     navController.navigate(Screen.Login.route)
-                }
+                },
+                muaNgay = {
+                    navController.navigate("checkout_screen")
+                },
+                gioHangDao = gioHangDao
             )
         }
 

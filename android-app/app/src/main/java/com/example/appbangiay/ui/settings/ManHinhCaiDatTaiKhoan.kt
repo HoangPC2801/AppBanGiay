@@ -121,7 +121,10 @@ fun ManHinhCaiDatTaiKhoan(
                     1.dp,
                     Color(0xFFE5E5E5)
                 ),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 2.dp
+                )
             ) {
                 Row(
                     modifier = Modifier
@@ -265,7 +268,10 @@ fun CardSetting(content: @Composable ColumnScope.() -> Unit) {
             1.dp,
             Color(0xFFE5E5E5)
         ),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
     ) {
         Column(content = content)
     }

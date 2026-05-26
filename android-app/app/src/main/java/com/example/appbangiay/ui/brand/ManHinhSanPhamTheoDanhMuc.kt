@@ -16,17 +16,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.example.appbangiay.model.Giay
 import com.example.appbangiay.viewmodel.TrangChuViewModel
-import androidx.compose.foundation.BorderStroke
+import com.example.appbangiay.ui.components.ProductCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,8 +114,9 @@ fun ManHinhSanPhamTheoDanhMuc(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(danhSachLoc) { giay ->
-                        CategoryProductCard(
+                        ProductCard(
                             giay = giay,
+                            modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 chuyenSangChiTiet(giay.maGiay)
                             }
@@ -127,72 +126,5 @@ fun ManHinhSanPhamTheoDanhMuc(
             }
         }
     }
-}
-
-@Composable
-fun CategoryProductCard(
-    giay: Giay,
-    onClick: () -> Unit
-) {
-    Card(
-        shape = RoundedCornerShape(14.dp),
-
-        border = BorderStroke(
-            1.dp,
-            Color(0xFFE5E5E5)
-        ),
-
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        ),
-
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        )
-    ) {
-        Column {
-            AsyncImage(
-                model = giay.hinhAnh,
-                contentDescription = giay.tenGiay,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(170.dp)
-                    .padding(12.dp),
-                contentScale = ContentScale.Fit
-            )
-
-            Column(modifier = Modifier.padding(10.dp)) {
-                Text(
-                    text = giay.tenGiay,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "${formatMoneyCategory(giay.giaTien)}đ",
-                    color = Color(0xFFE53935),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = "⭐ 5.0  |  Đã bán 25",
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
-                )
-            }
-        }
-    }
-}
-
-fun formatMoneyCategory(value: Float): String {
-    return "%,.0f".format(value).replace(",", ".")
 }
 

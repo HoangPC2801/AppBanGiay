@@ -16,14 +16,13 @@ class TrangChuViewModel : ViewModel() {
     val trangThaiTai: StateFlow<Boolean> = _trangThaiTai
 
     init {
-        goiApiLayDanhSachGiay()
+        taiLaiSanPham()
     }
 
-    private fun goiApiLayDanhSachGiay() {
+    fun taiLaiSanPham() {
         viewModelScope.launch {
             _trangThaiTai.value = true
             try {
-                // Parse chuỗi JSON thành danh sách object
                 val ketQua = KetNoiServer.api.layDanhSachGiay()
                 _danhSachGiay.value = ketQua
             } catch (e: Exception) {
