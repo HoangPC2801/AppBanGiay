@@ -47,4 +47,19 @@ interface GioHangDao {
         giaTien: Float,
         hinhAnh: String?
     )
+
+    @Query("""
+    SELECT * FROM bang_gio_hang
+    WHERE firebaseUid = :firebaseUid
+    AND maGiay = :maGiay
+    AND (mauSac = :mauSac OR (mauSac IS NULL AND :mauSac IS NULL))
+    AND (size = :size OR (size IS NULL AND :size IS NULL))
+    LIMIT 1
+    """)
+    suspend fun timSanPhamTrongGioHang(
+        firebaseUid: String,
+        maGiay: Int,
+        mauSac: String?,
+        size: String?
+    ): GioHang?
 }

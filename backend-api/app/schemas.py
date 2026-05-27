@@ -149,6 +149,9 @@ class OrderItemOut(OrderItemBase):
 
 class OrderCreate(BaseModel):
     user_id: int
+    firebase_uid: Optional[str] = None
+    customer_name: Optional[str] = None
+    customer_email: Optional[str] = None
     total: float
     shipping_address: str
     payment_method: str

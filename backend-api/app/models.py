@@ -89,6 +89,8 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     firebase_uid = Column(String(128), nullable=True)
+    customer_name = Column(String(100), nullable=True)
+    customer_email = Column(String(150), nullable=True)
     total = Column(Float)
     status = Column(String(20), default="pending")
     shipping_address = Column(Text)

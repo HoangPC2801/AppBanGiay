@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
+import com.example.appbangiay.model.GioHang
 
 class ThanhToanViewModel(private val dao: GioHangDao) : ViewModel() {
 
@@ -22,49 +23,61 @@ class ThanhToanViewModel(private val dao: GioHangDao) : ViewModel() {
     private val _trangThaiDatHang = MutableStateFlow<String>("Chưa đặt")
     val trangThaiDatHang: StateFlow<String> = _trangThaiDatHang
 
-    fun thucHienDatHang(maNguoiDung: Int, diaChi: String) {
+    fun thucHienDatHang(
+        maNguoiDung: Int,
+        diaChi: String,
+        phuongThucThanhToan: String,
+        danhSachDatHang: List<GioHang>,
+        xoaGioHangSauKhiDat: Boolean
+    ) {
         viewModelScope.launch {
             _trangThaiDatHang.value = "Đang xử lý..."
+
             try {
-                // 1. Lấy dữ liệu giỏ hàng hiện tại
-                val danhSachHienTai = danhSachGioHang.first()
-                if (danhSachHienTai.isEmpty()) {
+                if (danhSachDatHang.isEmpty()) {
                     _trangThaiDatHang.value = "Giỏ hàng trống"
                     return@launch
                 }
 
-                // 2. Tính tổng tiền
-                var tongTien = 0f
-                val dsChiTiet = mutableListOf<ChiTietMonHang>()
+                val tongTien = danhSachDatHang.sumOf {
+                    (it.giaTien * it.soLuong).toDouble()
+                }.toFloat()
 
-                for (monHang in danhSachHienTai) {
-                    tongTien += monHang.giaTien * monHang.soLuong
-                    dsChiTiet.add(
-                        ChiTietMonHang(
-                            maGiay = monHang.maGiay,
-                            soLuong = monHang.soLuong,
-                            giaTien = monHang.giaTien
-                        )
+                val dsChiTiet = danhSachDatHang.map {
+                    ChiTietMonHang(
+                        maGiay = it.maGiay,
+                        soLuong = it.soLuong,
+                        giaTien = it.giaTien,
+                        mauSac = it.mauSac,
+                        size = it.size
                     )
                 }
 
-                // 3. Đóng gói Payload (Dữ liệu gửi đi)
+                val user = FirebaseAuth.getInstance().currentUser
+
                 val yeuCau = YeuCauDatHang(
                     maNguoiDung = maNguoiDung,
+                    firebaseUid = user?.uid,
+                    tenKhachHang = user?.displayName ?: "Khách hàng",
+                    emailKhachHang = user?.email,
                     tongTien = tongTien,
                     diaChiGiaoHang = diaChi,
-                    phuongThucThanhToan = "COD", // Trả tiền mặt mặc định
+                    phuongThucThanhToan = phuongThucThanhToan,
                     danhSachMonHang = dsChiTiet
                 )
 
-                // 4. Gửi lên FastAPI Backend
                 val phanHoi = KetNoiServer.api.taoDonHang(yeuCau)
+
                 if (phanHoi.isSuccessful) {
-                    _trangThaiDatHang.value = "Thành công"
-                    dao.xoaTheoNguoiDung(uid) // Đặt thành công thì xóa giỏ hàng local
+                    if (xoaGioHangSauKhiDat) {
+                        dao.xoaTheoNguoiDung(uid)
+                    }
+
+                    _trangThaiDatHang.value = "Đặt hàng thành công"
                 } else {
                     _trangThaiDatHang.value = "Lỗi server: ${phanHoi.code()}"
                 }
+
             } catch (e: Exception) {
                 _trangThaiDatHang.value = "Lỗi kết nối: ${e.message}"
             }

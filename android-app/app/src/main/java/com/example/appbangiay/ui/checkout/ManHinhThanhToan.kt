@@ -3,7 +3,6 @@ package com.example.appbangiay.ui.checkout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,9 +27,6 @@ import coil.compose.AsyncImage
 import com.example.appbangiay.model.GioHang
 import com.example.appbangiay.viewmodel.ThanhToanViewModel
 import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +34,8 @@ fun ManHinhThanhToan(
     viewModel: ThanhToanViewModel,
     quayVeTrangChu: () -> Unit,
     chonDiaChi: () -> Unit,
-    diaChiDaChon: String = ""
+    diaChiDaChon: String = "",
+    sanPhamMuaNgay: GioHang? = null
 ) {
     var diaChi by remember { mutableStateOf("") }
     LaunchedEffect(diaChiDaChon) {
@@ -50,18 +47,115 @@ fun ManHinhThanhToan(
     var ghiChu by remember { mutableStateOf("") }
     var phuongThuc by remember { mutableStateOf("COD") }
 
-    val danhSach by viewModel.danhSachGioHang.collectAsState(initial = emptyList())
+    val danhSachGioHang by viewModel.danhSachGioHang.collectAsState(initial = emptyList())
+
+    val danhSach = if (sanPhamMuaNgay != null) {
+        listOf(sanPhamMuaNgay)
+    } else {
+        danhSachGioHang
+    }
+
+    val laMuaNgay = sanPhamMuaNgay != null
+
+    var hienDialogThanhCong by remember { mutableStateOf(false) }
+    val trangThaiDatHang by viewModel.trangThaiDatHang.collectAsState()
+
+    LaunchedEffect(trangThaiDatHang) {
+        if (trangThaiDatHang == "Đặt hàng thành công") {
+            hienDialogThanhCong = true
+        }
+    }
+
+    if (hienDialogThanhCong) {
+
+        AlertDialog(
+            onDismissRequest = {},
+            shape = RoundedCornerShape(24.dp),
+            containerColor = Color.White,
+
+            title = null,
+
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Box(
+                        modifier = Modifier
+                            .size(90.dp)
+                            .background(
+                                Color(0xFFE8F5E9),
+                                shape = RoundedCornerShape(50.dp)
+                            ),
+
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "✓",
+                            fontSize = 42.sp,
+                            color = Color(0xFF4CAF50),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Text(
+                        text = "Đặt hàng thành công",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "Đơn hàng của bạn đã được gửi đến HoangShoes để xử lý.",
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        lineHeight = 22.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+            },
+
+            confirmButton = {
+
+                Button(
+                    onClick = {
+                        hienDialogThanhCong = false
+                        quayVeTrangChu()
+                    },
+
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+
+                    shape = RoundedCornerShape(14.dp),
+
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF064C8C)
+                    )
+                ) {
+
+                    Text(
+                        text = "TIẾP TỤC",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        )
+    }
 
     val tamTinh = danhSach.sumOf { (it.giaTien * it.soLuong).toDouble() }.toFloat()
     val phiVanChuyen = 0f
     val tongThanhToan = tamTinh + phiVanChuyen
-
-    var hienManChonDiaChi by remember { mutableStateOf(false) }
-    var hienSheetThemDiaChi by remember { mutableStateOf(false) }
-
-    var tenNguoiNhan by remember { mutableStateOf("") }
-    var tinhThanh by remember { mutableStateOf("") }
-    var diaChiChiTiet by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -92,9 +186,14 @@ fun ManHinhThanhToan(
         bottomBar = {
             Button(
                 onClick = {
+                    if (diaChi.isBlank() || diaChi == "Chưa có địa chỉ") return@Button
+
                     viewModel.thucHienDatHang(
                         maNguoiDung = 1,
-                        diaChi = if (diaChi.isBlank()) "Chưa có địa chỉ" else diaChi
+                        diaChi = diaChi,
+                        phuongThucThanhToan = "COD",
+                        danhSachDatHang = danhSach,
+                        xoaGioHangSauKhiDat = !laMuaNgay
                     )
                 },
                 modifier = Modifier
@@ -104,12 +203,20 @@ fun ManHinhThanhToan(
                     .height(58.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF064C8C)
+                    containerColor = Color(0xFF064C8C),
+                    disabledContainerColor = Color.LightGray
                 ),
                 enabled = danhSach.isNotEmpty()
+                        && diaChi.isNotBlank()
+                        && diaChi != "Chưa có địa chỉ"
+                        && phuongThuc == "COD"
+                        && trangThaiDatHang != "Đang xử lý..."
             ) {
                 Text(
-                    text = "ĐẶT HÀNG NGAY",
+                    text = if (trangThaiDatHang == "Đang xử lý...")
+                        "ĐANG XỬ LÝ..."
+                    else
+                        "ĐẶT HÀNG NGAY",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -244,20 +351,34 @@ fun ManHinhThanhToan(
                         PaymentOption(
                             title = "Thanh toán khi nhận hàng",
                             selected = phuongThuc == "COD",
-                            icon = { Icon(Icons.Default.Money, contentDescription = null, tint = Color(0xFF4CAF50)) },
-                            onClick = { phuongThuc = "COD" }
+                            icon = {
+                                Icon(Icons.Default.Money, contentDescription = null, tint = Color(0xFF4CAF50))
+                            },
+                            onClick = {
+                                phuongThuc = "COD"
+                            }
                         )
 
                         PaymentOption(
                             title = "Chuyển khoản ngân hàng",
-                            selected = phuongThuc == "BANK",
-                            icon = { Icon(Icons.Default.QrCode2, contentDescription = null, tint = Color(0xFF03A9F4)) },
-                            onClick = { phuongThuc = "BANK" }
+                            selected = phuongThuc == "BANK_TRANSFER",
+                            icon = {
+                                Icon(Icons.Default.QrCode2, contentDescription = null, tint = Color(0xFF03A9F4))
+                            },
+                            onClick = {
+                                phuongThuc = "BANK_TRANSFER"
+                            }
                         )
 
-                        if (phuongThuc == "BANK") {
+                        if (phuongThuc == "BANK_TRANSFER") {
                             Text(
-                                text = "Mã QR thanh toán sẽ được hiển thị sau khi bạn bấm Đặt Hàng.",
+                                text = """
+                        Ngân hàng: MB Bank
+                        Số tài khoản: 0337116571
+                        Chủ tài khoản: PHAM CONG HOANG
+                        Nội dung chuyển khoản: Thanh toan don hang
+                        Trạng thái: Chờ admin xác nhận thanh toán
+                                """.trimIndent(),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(Color(0xFFEFF8FF), RoundedCornerShape(8.dp))
@@ -268,11 +389,27 @@ fun ManHinhThanhToan(
                         }
 
                         PaymentOption(
-                            title = "Thanh toán qua thẻ",
-                            selected = phuongThuc == "CARD",
-                            icon = { Text("VISA", color = Color(0xFF064C8C), fontWeight = FontWeight.Bold) },
-                            onClick = { phuongThuc = "CARD" }
+                            title = "Thanh toán qua thẻ VISA",
+                            selected = phuongThuc == "VISA",
+                            icon = {
+                                Text("VISA", color = Color(0xFF064C8C), fontWeight = FontWeight.Bold)
+                            },
+                            onClick = {
+                                phuongThuc = "VISA"
+                            }
                         )
+
+                        if (phuongThuc == "VISA") {
+                            Text(
+                                text = "Thanh toán VISA đang ở chế độ giả lập. Khi bấm ĐẶT HÀNG NGAY, hệ thống sẽ giả lập thanh toán thành công.",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFFFFF8E1), RoundedCornerShape(8.dp))
+                                    .padding(12.dp),
+                                color = Color(0xFF333333),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }

@@ -5,6 +5,7 @@
 
         id("com.google.gms.google-services")
         id("org.jetbrains.kotlin.kapt")
+        id("kotlin-parcelize")
     }
 
     android {
@@ -90,4 +91,5 @@
         implementation("io.coil-kt:coil-compose:2.5.0")
 
         implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
+        implementation("com.google.firebase:firebase-storage-ktx")
     }

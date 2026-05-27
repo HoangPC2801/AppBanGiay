@@ -19,6 +19,8 @@ data class Giay(
     val averageRating: Double? = 5.0,
     @SerializedName("sold_count")
     val soldCount: Int? = 0,
+    @SerializedName("stock_quantity")
+    val soLuongTon: Int = 0,
 )
 
 data class BienTheGiay(

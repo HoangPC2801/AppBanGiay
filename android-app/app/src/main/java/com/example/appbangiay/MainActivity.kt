@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import com.example.appbangiay.ui.about.ManHinhVeHoangShoe
 import com.example.appbangiay.ui.support.ManHinhTrungTamHoTro
 import com.example.appbangiay.ui.settings.ManHinhCaiDatTaiKhoan
+import com.example.appbangiay.model.GioHang
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -241,8 +242,12 @@ fun AppNavigation() {
                 yeuCauDangNhap = {
                     navController.navigate(Screen.Login.route)
                 },
-                muaNgay = {
-                    navController.navigate("checkout_screen")
+                muaNgay = { sanPham ->
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("san_pham_mua_ngay", sanPham)
+
+                    navController.navigate("checkout_screen?mode=buy_now")
                 },
                 gioHangDao = gioHangDao
             )
@@ -264,7 +269,15 @@ fun AppNavigation() {
             }
         }
 
-        composable("checkout_screen") {
+        composable(
+            route = "checkout_screen?mode={mode}",
+            arguments = listOf(
+                navArgument("mode") {
+                    type = NavType.StringType
+                    defaultValue = "cart"
+                }
+            )
+        ) { backStackEntry ->
             if (!daDangNhap()) {
                 navController.navigate(Screen.Login.route) {
                     popUpTo("checkout_screen") { inclusive = true }
@@ -278,6 +291,12 @@ fun AppNavigation() {
                         }
                     }
                 )
+
+                val mode = backStackEntry.arguments?.getString("mode") ?: "cart"
+
+                val sanPhamMuaNgay = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<GioHang>("san_pham_mua_ngay")
 
                 val diaChiDaChon = navController.currentBackStackEntry
                     ?.savedStateHandle
@@ -294,7 +313,8 @@ fun AppNavigation() {
                     chonDiaChi = {
                         navController.navigate(Screen.Address.route)
                     },
-                    diaChiDaChon = diaChiDaChon
+                    diaChiDaChon = diaChiDaChon,
+                    sanPhamMuaNgay = if (mode == "buy_now") sanPhamMuaNgay else null
                 )
             }
         }

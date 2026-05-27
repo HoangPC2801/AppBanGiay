@@ -65,6 +65,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.collectAsState
 import com.example.appbangiay.ui.components.CartIconWithBadge
+import com.example.appbangiay.model.GioHang
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -79,7 +80,7 @@ fun ManHinhChiTiet(
     quayLai: () -> Unit,
     chuyenSangGioHang: () -> Unit,
     yeuCauDangNhap: () -> Unit,
-    muaNgay: () -> Unit = {},
+    muaNgay: (GioHang) -> Unit = {},
     gioHangDao: GioHangDao
 ) {
     val viewModel: ChiTietGiayViewModel = viewModel(
@@ -234,6 +235,17 @@ fun ManHinhChiTiet(
                                 yeuCauDangNhap()
                             } else {
 
+                                val bienThe = it.variants.firstOrNull { variant ->
+                                    variant.mauSac == mauDaChon && variant.size == sizeDaChon
+                                }
+
+                                val tonKho = bienThe?.soLuongTon ?: it.soLuongTon
+
+                                if (tonKho <= 0) {
+                                    Toast.makeText(context, "Sản phẩm đã hết hàng", Toast.LENGTH_SHORT).show()
+                                    return@let
+                                }
+
                                 viewModel.themVaoGioHang(
                                     giay = it,
                                     mauSac = mauDaChon,
@@ -245,8 +257,6 @@ fun ManHinhChiTiet(
                                     "Đã thêm vào giỏ hàng",
                                     Toast.LENGTH_SHORT
                                 ).show()
-
-                                chuyenSangGioHang()
                             }
                         }
                     }
@@ -259,7 +269,38 @@ fun ManHinhChiTiet(
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
-                        muaNgay()
+                        val currentUser = FirebaseAuth.getInstance().currentUser
+
+                        if (currentUser == null) {
+                            yeuCauDangNhap()
+                        } else {
+                            giay?.let {
+
+                                val bienThe = it.variants.firstOrNull { variant ->
+                                    variant.mauSac == mauDaChon && variant.size == sizeDaChon
+                                }
+
+                                val tonKho = bienThe?.soLuongTon ?: it.soLuongTon
+
+                                if (tonKho <= 0) {
+                                    Toast.makeText(context, "Sản phẩm đã hết hàng", Toast.LENGTH_SHORT).show()
+                                    return@let
+                                }
+
+                                muaNgay(
+                                    GioHang(
+                                        firebaseUid = currentUser.uid,
+                                        maGiay = it.maGiay,
+                                        tenGiay = it.tenGiay,
+                                        giaTien = it.giaTien,
+                                        hinhAnh = it.hinhAnh,
+                                        mauSac = mauDaChon,
+                                        size = sizeDaChon,
+                                        soLuong = 1
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             )
@@ -290,22 +331,52 @@ fun ManHinhChiTiet(
 
             else -> {
                 val product = giay!!
+                val tongTonKhoBienThe = product.variants.sumOf { it.soLuongTon }
+
+                val bienTheDaChon = product.variants.firstOrNull { variant ->
+                    variant.mauSac == mauDaChon && variant.size == sizeDaChon
+                }
+
+                val tonKhoDangHienThi = when {
+                    bienTheDaChon != null -> bienTheDaChon.soLuongTon
+                    mauDaChon != null -> product.variants
+                        .filter { it.mauSac == mauDaChon }
+                        .sumOf { it.soLuongTon }
+                    else -> tongTonKhoBienThe
+                }
+
+                if (tongTonKhoBienThe <= 0) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Sản phẩm này đã hết hàng",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray
+                        )
+                    }
+
+                    return@Scaffold
+                }
+
                 val danhSachMau = product.variants
+                    .filter { it.soLuongTon > 0 }
                     .mapNotNull { it.mauSac }
                     .filter { it.isNotBlank() }
                     .distinct()
 
                 val danhSachSizeTheoMau = product.variants
                     .filter { variant ->
-                        mauDaChon == null || variant.mauSac == mauDaChon
+                        variant.soLuongTon > 0 &&
+                                (mauDaChon == null || variant.mauSac == mauDaChon)
                     }
                     .mapNotNull { it.size }
                     .filter { it.isNotBlank() }
                     .distinct()
-
-                val bienTheDaChon = product.variants.firstOrNull {
-                    it.mauSac == mauDaChon && it.size == sizeDaChon
-                }
 
                 LaunchedEffect(product.variants) {
                     if (mauDaChon == null && danhSachMau.isNotEmpty()) {
@@ -606,6 +677,25 @@ fun ManHinhChiTiet(
                                 hienBangSize = true
                             }
                         )
+                    }
+
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "Còn lại: $tonKhoDangHienThi sản phẩm",
+                                color = if (tonKhoDangHienThi > 0)
+                                    Color(0xFF4CAF50)
+                                else
+                                    Color.Red,
+
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
 
                     item {

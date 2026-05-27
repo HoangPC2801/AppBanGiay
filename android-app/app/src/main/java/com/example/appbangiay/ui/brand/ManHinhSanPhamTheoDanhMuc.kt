@@ -25,6 +25,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appbangiay.model.Giay
 import com.example.appbangiay.viewmodel.TrangChuViewModel
 import com.example.appbangiay.ui.components.ProductCard
+import com.example.appbangiay.ui.components.BoLocSanPhamBottomSheet
+import com.example.appbangiay.ui.components.BoLocSanPhamState
+import com.example.appbangiay.ui.components.locVaSapXepSanPham
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,10 +39,14 @@ fun ManHinhSanPhamTheoDanhMuc(
 ) {
     val danhSachGiay by viewModel.danhSachGiay.collectAsState()
     val dangTai by viewModel.trangThaiTai.collectAsState()
+    var hienBoLoc by remember { mutableStateOf(false) }
+    var boLoc by remember { mutableStateOf(BoLocSanPhamState()) }
 
-    val danhSachLoc = danhSachGiay.filter {
+    val danhSachGoc = danhSachGiay.filter {
         it.danhMuc.equals(category, ignoreCase = true)
     }
+
+    val danhSachLoc = locVaSapXepSanPham(danhSachGoc, boLoc)
 
     Scaffold(
         topBar = {
@@ -68,7 +75,11 @@ fun ManHinhSanPhamTheoDanhMuc(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(end = 12.dp)
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .clickable {
+                                hienBoLoc = true
+                            }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Tune,
@@ -78,6 +89,18 @@ fun ManHinhSanPhamTheoDanhMuc(
                     }
                 }
             )
+
+            if (hienBoLoc) {
+                BoLocSanPhamBottomSheet(
+                    boLocHienTai = boLoc,
+                    onDismiss = {
+                        hienBoLoc = false
+                    },
+                    onApDung = {
+                        boLoc = it
+                    }
+                )
+            }
         }
     ) { padding ->
         when {

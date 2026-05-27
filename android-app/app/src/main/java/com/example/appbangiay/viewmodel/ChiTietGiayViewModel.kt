@@ -40,24 +40,38 @@ class ChiTietGiayViewModel(
         size: String?
     ) {
         viewModelScope.launch {
-            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
 
-            if (uid == null) {
-                return@launch
-            }
-
-            val monHang = GioHang(
+            val sanPhamDaCo = dao.timSanPhamTrongGioHang(
                 firebaseUid = uid,
                 maGiay = giay.maGiay,
-                tenGiay = giay.tenGiay,
-                giaTien = giay.giaTien,
-                hinhAnh = giay.hinhAnh,
                 mauSac = mauSac,
-                size = size,
-                soLuong = 1
+                size = size
             )
 
-            dao.themVaoGio(monHang)
+            if (sanPhamDaCo != null) {
+                dao.capNhat(
+                    sanPhamDaCo.copy(
+                        soLuong = sanPhamDaCo.soLuong + 1,
+                        tenGiay = giay.tenGiay,
+                        giaTien = giay.giaTien,
+                        hinhAnh = giay.hinhAnh
+                    )
+                )
+            } else {
+                val monHang = GioHang(
+                    firebaseUid = uid,
+                    maGiay = giay.maGiay,
+                    tenGiay = giay.tenGiay,
+                    giaTien = giay.giaTien,
+                    hinhAnh = giay.hinhAnh,
+                    mauSac = mauSac,
+                    size = size,
+                    soLuong = 1
+                )
+
+                dao.themVaoGio(monHang)
+            }
         }
     }
 }
