@@ -14,6 +14,13 @@ import com.example.appbangiay.model.ProductReviewOut
 import com.example.appbangiay.model.ProductReviewCreate
 import com.example.appbangiay.model.ProductReviewSummary
 import retrofit2.http.Query
+import com.example.appbangiay.model.OrderResponse
+import com.example.appbangiay.model.AppBanner
+import com.example.appbangiay.model.DonHangCuaToi
+import com.example.appbangiay.model.ChiTietDonHang
+import retrofit2.http.PATCH
+import com.example.appbangiay.model.ThongBao
+import com.example.appbangiay.model.ThongBaoChuaDocResponse
 
 // Định nghĩa các endpoint API
 interface ApiDichVu {
@@ -24,7 +31,9 @@ interface ApiDichVu {
     suspend fun layChiTietGiay(@Path("id") maGiay: Int): Giay
 
     @POST("orders/")
-    suspend fun taoDonHang(@Body yeuCau: YeuCauDatHang): Response<ResponseBody>
+    suspend fun taoDonHang(
+        @Body request: YeuCauDatHang
+    ): Response<OrderResponse>
 
     @GET("products/{productId}/reviews")
     suspend fun layDanhGiaSanPham(
@@ -45,6 +54,42 @@ interface ApiDichVu {
         @Query("firebase_uid") firebaseUid: String
     ): Map<String, Boolean>
 
+    @GET("app-banners/")
+    suspend fun layDanhSachBanner(): List<AppBanner>
+
+    @GET("orders/my-orders")
+    suspend fun layDonHangCuaToi(
+        @Query("firebase_uid") firebaseUid: String,
+        @Query("status") status: String
+    ): List<DonHangCuaToi>
+
+    @GET("orders/my-orders/{order_id}")
+    suspend fun layChiTietDonHangCuaToi(
+        @Path("order_id") orderId: Int,
+        @Query("firebase_uid") firebaseUid: String
+    ): ChiTietDonHang
+
+    @PATCH("orders/cancel/{order_id}")
+    suspend fun huyDonHang(
+        @Path("order_id") orderId: Int,
+        @Query("firebase_uid") firebaseUid: String
+    ): ResponseBody
+
+    @GET("notifications/")
+    suspend fun layThongBao(
+        @Query("firebase_uid") firebaseUid: String,
+        @Query("type") type: String? = null
+    ): List<ThongBao>
+
+    @PATCH("notifications/{notification_id}/read")
+    suspend fun danhDauDaDocThongBao(
+        @Path("notification_id") notificationId: Int
+    ): ResponseBody
+
+    @GET("notifications/unread-count")
+    suspend fun laySoThongBaoChuaDoc(
+        @Query("firebase_uid") firebaseUid: String
+    ): ThongBaoChuaDocResponse
 }
 
 // Khởi tạo Retrofit Client

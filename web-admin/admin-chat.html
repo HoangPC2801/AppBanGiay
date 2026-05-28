@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat với khách hàng - HoangShoes Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div id="admin-header"></div>
+
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-md-4">
+            <h4>Khách hàng</h4>
+            <div id="chat-list" class="list-group"></div>
+        </div>
+
+        <div class="col-md-8">
+            <h4 id="chat-title">Chọn khách hàng để chat</h4>
+
+            <div id="messages-box"
+                 class="bg-white border rounded p-3 mb-3"
+                 style="height: 520px; overflow-y: auto;">
+            </div>
+
+            <div class="input-group">
+                <input id="message-input" class="form-control" placeholder="Nhập tin nhắn...">
+                <button class="btn btn-primary" onclick="sendAdminMessage()">Gửi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+        getFirestore,
+        collection,
+        doc,
+        setDoc,
+        addDoc,
+        query,
+        orderBy,
+        onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCyuP7fgmTj0yPQh_3J8-IC7kl8QoLpqvE",
+        authDomain: "appbangiay-dac0f.firebaseapp.com",
+        projectId: "appbangiay-dac0f",
+        storageBucket: "appbangiay-dac0f.firebasestorage.app",
+        messagingSenderId: "641802044909",
+        appId: "1:641802044909:web:25d85ecbae1be8f00393e4",
+        measurementId: "G-R9HPQE536Z"
+        };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let selectedUserId = null;
+    let selectedUserName = "";
+
+    const chatList = document.getElementById("chat-list");
+    const messagesBox = document.getElementById("messages-box");
+    const chatTitle = document.getElementById("chat-title");
+
+    const chatsQuery = query(
+        collection(db, "chats"),
+        orderBy("updatedAt", "desc")
+    );
+
+    onSnapshot(chatsQuery, snapshot => {
+        chatList.innerHTML = "";
+
+        snapshot.forEach(docSnap => {
+            const chat = docSnap.data();
+
+            chatList.innerHTML += `
+                <button class="list-group-item list-group-item-action"
+                        onclick="selectChat('${docSnap.id}', '${chat.userName || 'Người dùng'}')">
+                    <div class="fw-bold">${chat.userName || 'Người dùng'}</div>
+                    <small>${chat.userEmail || ''}</small><br>
+                    <small class="text-muted">${chat.lastMessage || ''}</small>
+                </button>
+            `;
+        });
+    });
+
+    window.selectChat = function(userId, userName) {
+        selectedUserId = userId;
+        selectedUserName = userName;
+        chatTitle.innerText = "Đang chat với " + userName;
+        messagesBox.innerHTML = "";
+
+        const messagesQuery = query(
+            collection(db, "chats", userId, "messages"),
+            orderBy("createdAt", "asc")
+        );
+
+        onSnapshot(messagesQuery, snapshot => {
+            messagesBox.innerHTML = "";
+
+            snapshot.forEach(docSnap => {
+                const msg = docSnap.data();
+                const isAdmin = msg.sender === "admin";
+
+                messagesBox.innerHTML += `
+                    <div class="d-flex mb-2 ${isAdmin ? 'justify-content-end' : 'justify-content-start'}">
+                        <div class="p-2 rounded ${isAdmin ? 'bg-primary text-white' : 'bg-light border'}"
+                             style="max-width: 70%;">
+                            ${escapeHtml(msg.text || '')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+        });
+    }
+
+    window.sendAdminMessage = async function() {
+        if (!selectedUserId) {
+            alert("Vui lòng chọn khách hàng");
+            return;
+        }
+
+        const input = document.getElementById("message-input");
+        const text = input.value.trim();
+
+        if (!text) return;
+
+        const now = Date.now();
+
+        await addDoc(
+            collection(db, "chats", selectedUserId, "messages"),
+            {
+                text: text,
+                sender: "admin",
+                senderName: "HoangShoes",
+                createdAt: now,
+                seen: false
+            }
+        );
+
+        await setDoc(
+            doc(db, "chats", selectedUserId),
+            {
+                lastMessage: text,
+                lastSender: "admin",
+                updatedAt: now
+            },
+            { merge: true }
+        );
+
+        input.value = "";
+    }
+
+    function escapeHtml(text) {
+        return String(text || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+</script>
+
+<script src="layout.js"></script>
+</body>
+</html>

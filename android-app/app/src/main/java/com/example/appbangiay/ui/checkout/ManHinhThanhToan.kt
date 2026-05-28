@@ -27,6 +27,12 @@ import coil.compose.AsyncImage
 import com.example.appbangiay.model.GioHang
 import com.example.appbangiay.viewmodel.ThanhToanViewModel
 import androidx.compose.foundation.clickable
+import android.net.Uri
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.filled.CheckCircle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +50,8 @@ fun ManHinhThanhToan(
         }
     }
 
+
+
     var ghiChu by remember { mutableStateOf("") }
     var phuongThuc by remember { mutableStateOf("COD") }
 
@@ -55,13 +63,44 @@ fun ManHinhThanhToan(
         danhSachGioHang
     }
 
+    val tamTinh = danhSach.sumOf {
+        (it.giaTien * it.soLuong).toDouble()
+    }.toFloat()
+
+    val phiVanChuyen = 0f
+
+    val tongThanhToan = tamTinh + phiVanChuyen
+
+    val maDonHang by viewModel.maDonHang.collectAsState()
+
+    var hienManHinhQR by remember { mutableStateOf(false) }
+    val bankId = "MB"
+    val soTaiKhoan = "280112349999"
+    val tenTaiKhoan = "PHAM CONG HOANG"
+    val noiDungCK = "THANH TOAN DON ${maDonHang ?: ""}"
+
+    val vietQrUrl =
+        "https://img.vietqr.io/image/$bankId-$soTaiKhoan-compact2.png" +
+                "?amount=${tongThanhToan.toInt()}" +
+                "&addInfo=${Uri.encode(noiDungCK)}" +
+                "&accountName=${Uri.encode(tenTaiKhoan)}"
+
+    LaunchedEffect(maDonHang) {
+        if (phuongThuc == "BANK_TRANSFER" && maDonHang != null) {
+            hienManHinhQR = true
+        }
+    }
+
     val laMuaNgay = sanPhamMuaNgay != null
 
     var hienDialogThanhCong by remember { mutableStateOf(false) }
     val trangThaiDatHang by viewModel.trangThaiDatHang.collectAsState()
 
     LaunchedEffect(trangThaiDatHang) {
-        if (trangThaiDatHang == "Đặt hàng thành công") {
+        if (
+            trangThaiDatHang == "Đặt hàng thành công" &&
+            phuongThuc != "BANK_TRANSFER"
+        ) {
             hienDialogThanhCong = true
         }
     }
@@ -94,11 +133,11 @@ fun ManHinhThanhToan(
 
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "✓",
-                            fontSize = 42.sp,
-                            color = Color(0xFF4CAF50),
-                            fontWeight = FontWeight.Bold
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier.size(70.dp)
                         )
                     }
 
@@ -126,36 +165,56 @@ fun ManHinhThanhToan(
 
             confirmButton = {
 
-                Button(
-                    onClick = {
-                        hienDialogThanhCong = false
-                        quayVeTrangChu()
-                    },
-
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
-
-                    shape = RoundedCornerShape(14.dp),
-
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF064C8C)
-                    )
+                        .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
 
-                    Text(
-                        text = "TIẾP TỤC",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
+                    Button(
+                        onClick = {
+                            hienDialogThanhCong = false
+                            quayVeTrangChu()
+                        },
+
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+
+                        shape = RoundedCornerShape(14.dp),
+
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF064C8C)
+                        )
+                    ) {
+
+                        Text(
+                            text = "TIẾP TỤC",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }
         )
     }
 
-    val tamTinh = danhSach.sumOf { (it.giaTien * it.soLuong).toDouble() }.toFloat()
-    val phiVanChuyen = 0f
-    val tongThanhToan = tamTinh + phiVanChuyen
+
+    if (hienManHinhQR) {
+        ManHinhQuetMaThanhToan(
+            maDonTam = maDonHang ?: 0,
+            tongTien = tongThanhToan,
+            qrUrl = vietQrUrl,
+            noiDungCK = noiDungCK,
+            onToiDaThanhToan = {
+                hienDialogThanhCong = true
+            },
+            onTiepTucMuaSam = {
+                quayVeTrangChu()
+            }
+        )
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -188,11 +247,24 @@ fun ManHinhThanhToan(
                 onClick = {
                     if (diaChi.isBlank() || diaChi == "Chưa có địa chỉ") return@Button
 
+                    if (phuongThuc == "BANK_TRANSFER") {
+                        viewModel.thucHienDatHang(
+                            maNguoiDung = 1,
+                            diaChi = diaChi,
+                            phuongThucThanhToan = "BANK_TRANSFER",
+                            danhSachDatHang = danhSach,
+                            ghiChu = ghiChu,
+                            xoaGioHangSauKhiDat = !laMuaNgay
+                        )
+                        return@Button
+                    }
+
                     viewModel.thucHienDatHang(
                         maNguoiDung = 1,
                         diaChi = diaChi,
-                        phuongThucThanhToan = "COD",
+                        phuongThucThanhToan = phuongThuc,
                         danhSachDatHang = danhSach,
+                        ghiChu = ghiChu,
                         xoaGioHangSauKhiDat = !laMuaNgay
                     )
                 },
@@ -209,7 +281,6 @@ fun ManHinhThanhToan(
                 enabled = danhSach.isNotEmpty()
                         && diaChi.isNotBlank()
                         && diaChi != "Chưa có địa chỉ"
-                        && phuongThuc == "COD"
                         && trangThaiDatHang != "Đang xử lý..."
             ) {
                 Text(
@@ -373,11 +444,8 @@ fun ManHinhThanhToan(
                         if (phuongThuc == "BANK_TRANSFER") {
                             Text(
                                 text = """
-                        Ngân hàng: MB Bank
-                        Số tài khoản: 0337116571
-                        Chủ tài khoản: PHAM CONG HOANG
-                        Nội dung chuyển khoản: Thanh toan don hang
-                        Trạng thái: Chờ admin xác nhận thanh toán
+                                Mã QR thanh toán sẽ được hiển thị
+                                sau khi bạn bấm ĐẶT HÀNG.
                                 """.trimIndent(),
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -569,7 +637,173 @@ fun SummaryRow(
     }
 }
 
+@Composable
+fun ManHinhQuetMaThanhToan(
+    maDonTam: Int,
+    tongTien: Float,
+    qrUrl: String,
+    noiDungCK: String,
+    onToiDaThanhToan: () -> Unit,
+    onTiepTucMuaSam: () -> Unit
+) {
+    var daBamThanhToan by remember { mutableStateOf(false) }
 
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .statusBarsPadding()
+            .navigationBarsPadding(),
+        contentPadding = PaddingValues(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        item {
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(92.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF4CAF50)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("✓", color = Color.White, fontSize = 58.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(34.dp))
+
+            Text(
+                text = "Đặt hàng thành công!",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF222222)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Mã đơn hàng: #$maDonTam",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(34.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                border = BorderStroke(1.dp, Color(0xFF0D4F8B)),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "QUÉT MÃ ĐỂ THANH TOÁN",
+                        color = Color(0xFF064C8C),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "${formatMoneyCheckout(tongTien)}đ",
+                        color = Color(0xFFE53935),
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    AsyncImage(
+                        model = qrUrl,
+                        contentDescription = "VietQR",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(330.dp),
+                        contentScale = ContentScale.Fit
+                    )
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    Text(
+                        text = "Nội dung chuyển khoản:",
+                        color = Color.Gray,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFF3F3F3), RoundedCornerShape(10.dp))
+                            .padding(14.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = noiDungCK,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF222222)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Sau khi chuyển khoản, hãy bấm “Tôi đã thanh toán”. HoangShoes sẽ xác nhận thanh toán trên hệ thống.",
+                color = Color.Gray,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 22.sp,
+                textAlign = TextAlign.Center
+            )
+
+            Button(
+                onClick = {
+                    if (!daBamThanhToan) {
+                        daBamThanhToan = true
+                        onToiDaThanhToan()
+                    }
+                },
+                enabled = !daBamThanhToan,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(58.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF064C8C),
+                    disabledContainerColor = Color.LightGray
+                )
+            ) {
+                Text(
+                    text = if (daBamThanhToan) "ĐANG TẠO ĐƠN..." else "TÔI ĐÃ THANH TOÁN",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = onTiepTucMuaSam,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("TIẾP TỤC MUA SẮM", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
 
 fun formatMoneyCheckout(value: Float): String {
     return "%,.0f".format(value).replace(",", ".")

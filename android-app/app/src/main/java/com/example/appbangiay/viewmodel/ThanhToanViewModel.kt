@@ -15,6 +15,9 @@ import com.example.appbangiay.model.GioHang
 
 class ThanhToanViewModel(private val dao: GioHangDao) : ViewModel() {
 
+    private val _maDonHang = MutableStateFlow<Int?>(null)
+    val maDonHang: StateFlow<Int?> = _maDonHang
+
     // Lấy danh sách realtime từ Room DB
     private val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
@@ -28,7 +31,8 @@ class ThanhToanViewModel(private val dao: GioHangDao) : ViewModel() {
         diaChi: String,
         phuongThucThanhToan: String,
         danhSachDatHang: List<GioHang>,
-        xoaGioHangSauKhiDat: Boolean
+        xoaGioHangSauKhiDat: Boolean,
+        ghiChu: String? = null
     ) {
         viewModelScope.launch {
             _trangThaiDatHang.value = "Đang xử lý..."
@@ -57,18 +61,22 @@ class ThanhToanViewModel(private val dao: GioHangDao) : ViewModel() {
 
                 val yeuCau = YeuCauDatHang(
                     maNguoiDung = maNguoiDung,
-                    firebaseUid = user?.uid,
+                    firebaseUid = FirebaseAuth.getInstance().currentUser?.uid,
                     tenKhachHang = user?.displayName ?: "Khách hàng",
                     emailKhachHang = user?.email,
                     tongTien = tongTien,
                     diaChiGiaoHang = diaChi,
                     phuongThucThanhToan = phuongThucThanhToan,
+                    ghiChu = ghiChu,
                     danhSachMonHang = dsChiTiet
                 )
 
                 val phanHoi = KetNoiServer.api.taoDonHang(yeuCau)
 
                 if (phanHoi.isSuccessful) {
+
+                    _maDonHang.value = phanHoi.body()?.order_id
+
                     if (xoaGioHangSauKhiDat) {
                         dao.xoaTheoNguoiDung(uid)
                     }

@@ -46,7 +46,8 @@ fun ManHinhToi(
     onNavigateToAbout: () -> Unit,
     onNavigateToFavorite: () -> Unit,
     onNavigateToSupport: () -> Unit,
-    onNavigateToAccountSettings: () -> Unit
+    onNavigateToAccountSettings: () -> Unit,
+    onNavigateToMyOrders: (String) -> Unit
 ) {
     val primaryBlue = MauXanhChinh
     val bgGray = Color(0xFFEFEFEF)
@@ -146,7 +147,7 @@ fun ManHinhToi(
                         Text(
                             text = "Khách hàng thân quen",
                             color = Color(0xFF4CAF50),
-                            fontSize = 11.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -156,7 +157,8 @@ fun ManHinhToi(
                     Text(
                         text = emailHienThi,
                         color = Color.White,
-                        fontSize = 13.sp
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
@@ -204,11 +206,35 @@ fun ManHinhToi(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        OrderStatusItem("Chờ xử lý", Icons.Outlined.Receipt)
-                        OrderStatusItem("Đang xử lý", Icons.Outlined.Inventory2)
-                        OrderStatusItem("Đang giao", Icons.Outlined.LocalShipping)
-                        OrderStatusItem("Hoàn thành", Icons.Outlined.CheckCircleOutline)
-                        OrderStatusItem("Hoàn / Hủy", Icons.Outlined.AssignmentReturn)
+                        OrderStatusItem(
+                            title = "Chờ xử lý",
+                            icon = Icons.Outlined.Receipt,
+                            onClick = { onNavigateToMyOrders("pending") }
+                        )
+
+                        OrderStatusItem(
+                            title = "Đang xử lý",
+                            icon = Icons.Outlined.Inventory2,
+                            onClick = { onNavigateToMyOrders("processing") }
+                        )
+
+                        OrderStatusItem(
+                            title = "Đang giao",
+                            icon = Icons.Outlined.LocalShipping,
+                            onClick = { onNavigateToMyOrders("shipped") }
+                        )
+
+                        OrderStatusItem(
+                            title = "Hoàn thành",
+                            icon = Icons.Outlined.CheckCircleOutline,
+                            onClick = { onNavigateToMyOrders("completed") }
+                        )
+
+                        OrderStatusItem(
+                            title = "Hoàn / Hủy",
+                            icon = Icons.Outlined.AssignmentReturn,
+                            onClick = { onNavigateToMyOrders("cancelled") }
+                        )
                     }
                 }
             }
@@ -347,10 +373,14 @@ fun ManHinhToi(
 
 // Component dùng chung cho các Icon trạng thái đơn hàng
 @Composable
-fun OrderStatusItem(title: String, icon: ImageVector) {
+fun OrderStatusItem(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { /* Xử lý click */ }
+        modifier = Modifier.clickable { onClick() }
     ) {
         Box(
             modifier = Modifier

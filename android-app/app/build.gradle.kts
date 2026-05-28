@@ -72,12 +72,8 @@
         implementation("com.squareup.retrofit2:retrofit:2.9.0")
         implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-        implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
         implementation("com.google.firebase:firebase-analytics")
-        implementation("com.google.firebase:firebase-auth-ktx")
 
-        // Coil để hiển thị hình ảnh từ URL trong Jetpack Compose
-        implementation("io.coil-kt:coil-compose:2.5.0")
 
         implementation ("androidx.compose.material:material-icons-extended")
 
@@ -90,6 +86,11 @@
         implementation("com.facebook.android:facebook-login:16.3.0")
         implementation("io.coil-kt:coil-compose:2.5.0")
 
-        implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
+
+
+        implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+
+        implementation("com.google.firebase:firebase-auth-ktx")
         implementation("com.google.firebase:firebase-storage-ktx")
+        implementation("com.google.firebase:firebase-firestore-ktx")
     }

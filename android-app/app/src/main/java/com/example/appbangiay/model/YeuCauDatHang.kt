@@ -10,6 +10,7 @@ data class YeuCauDatHang(
     @SerializedName("total") val tongTien: Float,
     @SerializedName("shipping_address") val diaChiGiaoHang: String,
     @SerializedName("payment_method") val phuongThucThanhToan: String,
+    @SerializedName("note") val ghiChu: String?,
     @SerializedName("items") val danhSachMonHang: List<ChiTietMonHang>
 )
 

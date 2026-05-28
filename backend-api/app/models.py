@@ -91,6 +91,7 @@ class Order(Base):
     firebase_uid = Column(String(128), nullable=True)
     customer_name = Column(String(100), nullable=True)
     customer_email = Column(String(150), nullable=True)
+    note = Column(Text, nullable=True)
     total = Column(Float)
     status = Column(String(20), default="pending")
     shipping_address = Column(Text)
@@ -161,6 +162,7 @@ class ProductReview(Base):
     admin_reply = Column(Text, nullable=True)
 
     admin_reply_at = Column(DateTime, nullable=True)
+    avatar_url = Column(Text, nullable=True)
 
     created_at = Column(DateTime, server_default=func.now())
 
@@ -194,3 +196,25 @@ class ProductImage(Base):
     sort_order = Column(Integer, default=0)
 
     product = relationship("Product", back_populates="images")
+
+class AppBanner(Base):
+    __tablename__ = "app_banners"
+
+    id = Column(Integer, primary_key=True, index=True)
+    image_url = Column(Text, nullable=False)
+    title = Column(String(255), nullable=True)
+    is_active = Column(Boolean, default=True)
+    display_order = Column(Integer, default=0)
+    created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    firebase_uid = Column(String(128), nullable=True)
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    type = Column(String(50), default="system")
+    related_order_id = Column(Integer, nullable=True)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))

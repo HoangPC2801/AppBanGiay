@@ -13,6 +13,141 @@
 
 <div class="container my-5 flex-grow-1">
     <h1 class="mb-4">Quản lý app</h1>
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <strong>Quản lý banner trang chủ app</strong>
+        </div>
+
+        <div class="card-body">
+            <input type="hidden" id="banner-id">
+
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Ảnh banner</label>
+                    <input
+                        type="file"
+                        id="banner-image-file"
+                        class="form-control"
+                        accept="image/*"
+                    >
+                    <div class="mt-3">
+                        <img
+                            id="banner-preview"
+                            src=""
+                            style="
+                                width: 100%;
+                                max-height: 220px;
+                                object-fit: cover;
+                                border-radius: 12px;
+                                display: none;
+                            "
+                        >
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Tiêu đề</label>
+                    <input type="text" id="banner-title" class="form-control" placeholder="VD: Sale tháng này">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Thứ tự</label>
+                    <input type="number" id="banner-order" class="form-control" value="0">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Hiển thị</label>
+                    <select id="banner-active" class="form-select">
+                        <option value="true">Bật</option>
+                        <option value="false">Tắt</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button class="btn btn-success" onclick="saveBanner()">Lưu banner</button>
+                <button class="btn btn-secondary" onclick="resetBannerForm()">Làm mới form</button>
+                <button class="btn btn-primary" onclick="loadBanners()">Tải lại banner</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive bg-white shadow-sm mb-5">
+        <table class="table table-bordered table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Ảnh</th>
+                    <th>Tiêu đề</th>
+                    <th>Thứ tự</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+
+            <tbody id="banners-body">
+                <tr>
+                    <td colspan="7" class="text-center">Đang tải banner...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-danger text-white">
+            <strong>Gửi thông báo khuyến mãi</strong>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Tiêu đề</label>
+                    <input
+                        type="text"
+                        id="promotion-title"
+                        class="form-control"
+                        placeholder="VD: Siêu sale cuối tuần"
+                    >
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Gửi đến</label>
+                    <select id="promotion-target" class="form-select">
+                        <option value="all">Tất cả người dùng</option>
+                        <option value="one">Một người dùng</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Firebase UID</label>
+                    <input
+                        type="text"
+                        id="promotion-firebase-uid"
+                        class="form-control"
+                        placeholder="Chỉ nhập nếu gửi 1 người"
+                    >
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Nội dung thông báo</label>
+                    <textarea
+                        id="promotion-message"
+                        class="form-control"
+                        rows="3"
+                        placeholder="Nhập nội dung khuyến mãi..."
+                    ></textarea>
+                </div>
+            </div>
+
+            <button
+                class="btn btn-danger mt-3"
+                onclick="sendPromotionNotification()"
+            >
+                Gửi thông báo
+            </button>
+        </div>
+    </div>
+
 
     <div class="card shadow-sm mb-4">
         <div class="card-body d-flex justify-content-between align-items-center">
@@ -53,7 +188,81 @@
 <div id="admin-footer"></div>
 
 <script>
+    document
+    .getElementById("banner-image-file")
+    .addEventListener("change", function(event) {
+
+        const file = event.target.files[0];
+
+        if (!file) return;
+
+        const preview = document.getElementById("banner-preview");
+
+        preview.src = URL.createObjectURL(file);
+
+        preview.style.display = "block";
+    });
     const API_BASE = "http://127.0.0.1:8000";
+    const API_NOTIFICATIONS = `${API_BASE}/notifications/admin`;
+    const API_BANNERS_ADMIN = `${API_BASE}/app-banners/admin`;
+    const API_BANNERS = `${API_BASE}/app-banners/`;
+
+    async function sendPromotionNotification() {
+        const title = document.getElementById("promotion-title").value.trim();
+        const message = document.getElementById("promotion-message").value.trim();
+        const target = document.getElementById("promotion-target").value;
+        const firebaseUid = document.getElementById("promotion-firebase-uid").value.trim();
+
+        if (!title) {
+            alert("Vui lòng nhập tiêu đề thông báo");
+            return;
+        }
+
+        if (!message) {
+            alert("Vui lòng nhập nội dung thông báo");
+            return;
+        }
+
+        if (target === "one" && !firebaseUid) {
+            alert("Vui lòng nhập Firebase UID người nhận");
+            return;
+        }
+
+        const payload = {
+            firebase_uid: target === "all" ? null : firebaseUid,
+            title: title,
+            message: message,
+            type: "promotion",
+            related_order_id: null
+        };
+
+        try {
+            const response = await fetch(API_NOTIFICATIONS, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const err = await response.text();
+                alert("Gửi thông báo thất bại: " + err);
+                return;
+            }
+
+            alert("Đã gửi thông báo khuyến mãi");
+
+            document.getElementById("promotion-title").value = "";
+            document.getElementById("promotion-message").value = "";
+            document.getElementById("promotion-firebase-uid").value = "";
+            document.getElementById("promotion-target").value = "all";
+
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi kết nối server");
+        }
+    }
 
     function escapeHtml(text) {
         return String(text || "")
@@ -271,7 +480,209 @@
         }
     }
 
+    async function loadBanners() {
+        const tbody = document.getElementById("banners-body");
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center">Đang tải banner...</td>
+            </tr>
+        `;
+
+        try {
+            const response = await fetch(API_BANNERS_ADMIN);
+
+            if (!response.ok) {
+                throw new Error("Không tải được banner");
+            }
+
+            const banners = await response.json();
+
+            if (!Array.isArray(banners) || banners.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            Chưa có banner nào.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = "";
+
+            banners.forEach(banner => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${banner.id}</td>
+
+                        <td class="text-center">
+                            <img
+                                src="${escapeHtml(banner.image_url)}"
+                                alt="Banner"
+                                style="width:160px;height:70px;object-fit:cover;border-radius:8px;"
+                                onerror="this.src='https://via.placeholder.com/160x70?text=No+Image'"
+                            >
+                        </td>
+
+
+                        <td>${escapeHtml(banner.title || "")}</td>
+
+                        <td>${banner.display_order}</td>
+
+                        <td>
+                            ${
+                                banner.is_active
+                                    ? '<span class="badge bg-success">Đang bật</span>'
+                                    : '<span class="badge bg-secondary">Đang tắt</span>'
+                            }
+                        </td>
+
+                        <td>
+                            <button class="btn btn-sm btn-warning me-1" onclick='editBanner(${JSON.stringify(banner)})'>
+                                Sửa
+                            </button>
+
+                            <button class="btn btn-sm btn-danger" onclick="deleteBanner(${banner.id})">
+                                Xóa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+        } catch (error) {
+            console.error(error);
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-danger text-center">
+                        Lỗi tải banner. Kiểm tra backend API /app-banners.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function resetBannerForm() {
+        document.getElementById("banner-id").value = "";
+        document.getElementById("banner-image-file").value = "";
+        document.getElementById("banner-title").value = "";
+        document.getElementById("banner-order").value = 0;
+        document.getElementById("banner-active").value = "true";
+
+        const preview = document.getElementById("banner-preview");
+        preview.src = "";
+        preview.dataset.oldUrl = "";
+        preview.style.display = "none";
+    }
+
+    function editBanner(banner) {
+        document.getElementById("banner-id").value = banner.id;
+        document.getElementById("banner-title").value = banner.title || "";
+        document.getElementById("banner-order").value = banner.display_order || 0;
+        document.getElementById("banner-active").value = banner.is_active ? "true" : "false";
+
+        const preview = document.getElementById("banner-preview");
+        preview.src = banner.image_url || "";
+        preview.dataset.oldUrl = banner.image_url || "";
+        preview.style.display = banner.image_url ? "block" : "none";
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function saveBanner() {
+        const id = document.getElementById("banner-id").value;
+        const fileInput = document.getElementById("banner-image-file");
+        const file = fileInput.files[0];
+
+        const title = document.getElementById("banner-title").value.trim();
+        const displayOrder = Number(document.getElementById("banner-order").value || 0);
+        const isActive = document.getElementById("banner-active").value === "true";
+
+        const preview = document.getElementById("banner-preview");
+
+        let imageUrl = "";
+
+        try {
+            if (file) {
+                if (!window.storage || !window.firebaseRef || !window.uploadBytes || !window.getDownloadURL) {
+                    alert("Firebase Storage chưa được cấu hình đúng");
+                    return;
+                }
+
+                const fileName = `banners/${Date.now()}_${file.name}`;
+                const storageRef = window.firebaseRef(window.storage, fileName);
+
+                await window.uploadBytes(storageRef, file);
+                imageUrl = await window.getDownloadURL(storageRef);
+            } else if (id) {
+                imageUrl = preview.dataset.oldUrl || preview.src;
+            }
+
+            if (!imageUrl) {
+                alert("Vui lòng chọn ảnh banner");
+                return;
+            }
+
+            const payload = {
+                image_url: imageUrl,
+                title: title,
+                is_active: isActive,
+                display_order: displayOrder
+            };
+
+            const url = id ? `${API_BANNERS}${id}` : API_BANNERS;
+            const method = id ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const err = await response.text();
+                alert("Lưu banner thất bại: " + err);
+                return;
+            }
+
+            alert(id ? "Đã cập nhật banner" : "Đã thêm banner");
+            resetBannerForm();
+            loadBanners();
+
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi lưu banner: " + error.message);
+        }
+    }
+
+    async function deleteBanner(id) {
+        if (!confirm("Bạn chắc chắn muốn xóa banner này?")) return;
+
+        try {
+            const response = await fetch(`${API_BANNERS}${id}`, {
+                method: "DELETE"
+            });
+
+            if (!response.ok) {
+                alert("Xóa banner thất bại");
+                return;
+            }
+
+            alert("Đã xóa banner");
+            loadBanners();
+
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi kết nối server");
+        }
+    }
+
     window.onload = () => {
+        loadBanners();
         loadReviews();
     };
 
@@ -315,6 +726,34 @@
 
 <script src="layout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import {
+        getStorage,
+        ref,
+        uploadBytes,
+        getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCyuP7fgmTj0yPQh_3J8-IC7kl8QoLpqvE",
+        authDomain: "appbangiay-dac0f.firebaseapp.com",
+        projectId: "appbangiay-dac0f",
+        storageBucket: "appbangiay-dac0f.firebasestorage.app",
+        messagingSenderId: "641802044909",
+        appId: "1:641802044909:web:25d85ecbae1be8f00393e4",
+        measurementId: "G-R9HPQE536Z"
+        };
+
+    const app = initializeApp(firebaseConfig);
+
+    window.storage = getStorage(app);
+    window.firebaseRef = ref;
+    window.uploadBytes = uploadBytes;
+    window.getDownloadURL = getDownloadURL;
+</script>
 
 </body>
 </html>

@@ -75,6 +75,7 @@
 <script>
     const API_DASHBOARD = 'http://127.0.0.1:8000/dashboard/stats';
     const API_ORDERS = 'http://127.0.0.1:8000/orders/';
+    const API_FIREBASE_USERS = 'http://127.0.0.1:8000/firebase-users/';
 
     // Hàm định dạng ngày tháng
     function formatDate(dateString) {
@@ -93,7 +94,10 @@
             document.getElementById('stat-orders').innerText = data.total_orders;
             document.getElementById('stat-revenue').innerText = (data.total_revenue || 0).toLocaleString() + ' VNĐ';
             document.getElementById('stat-products').innerText = data.total_products;
-            document.getElementById('stat-users').innerText = data.total_users;
+            const firebaseUsersResponse = await fetch(API_FIREBASE_USERS);
+            const firebaseUsers = await firebaseUsersResponse.json();
+
+            document.getElementById('stat-users').innerText = firebaseUsers.length;
         } catch (error) {
             console.error("Lỗi khi tải thống kê:", error);
         }

@@ -21,6 +21,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.size
 import com.example.appbangiay.database.GioHangDao
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.IntOffset
+import com.google.firebase.auth.FirebaseAuth
+import com.example.appbangiay.network.KetNoiServer
+import androidx.compose.foundation.background
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     object Home : BottomNavItem("home", Icons.Default.Home, "Trang chủ")
@@ -42,10 +50,15 @@ fun MainScreen(
     onNavigateToAbout: () -> Unit,
     onNavigateToSupport: () -> Unit,
     onNavigateToAccountSettings: () -> Unit,
+    onNavigateToMyOrders: (String) -> Unit,
     isLoggedIn: Boolean,
+    onNavigateToOrderDetail: (Int) -> Unit,
     gioHangDao: GioHangDao
 ) {
     var selectedItem by rememberSaveable { mutableStateOf(0) }
+    var soThongBaoChuaDoc by remember {
+        mutableStateOf(0)
+    }
     val primaryBlue = MauXanhChinh
 
     val items = listOf(
@@ -55,17 +68,76 @@ fun MainScreen(
         BottomNavItem.Profile
     )
 
+    suspend fun taiSoThongBao() {
+        try {
+
+            val uid = FirebaseAuth
+                .getInstance()
+                .currentUser
+                ?.uid ?: ""
+
+            val response = KetNoiServer.api
+                .laySoThongBaoChuaDoc(uid)
+
+            soThongBaoChuaDoc = response.unread_count
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(selectedItem) {
+
+        if (isLoggedIn) {
+            if (isLoggedIn) {
+                taiSoThongBao()
+            }
+        }
+    }
+
     Scaffold(
         bottomBar = {
             NavigationBar(containerColor = primaryBlue) {
                 items.forEachIndexed { index, item ->
                     NavigationBarItem(
                         icon = {
-                            Icon(
-                                item.icon,
-                                contentDescription = item.label,
-                                modifier = Modifier.size(28.dp)
-                            )
+
+                            Box {
+
+                                Icon(
+                                    item.icon,
+                                    contentDescription = item.label,
+                                    modifier = Modifier.size(28.dp)
+                                )
+
+                                if (
+                                    item == BottomNavItem.Notification &&
+                                    soThongBaoChuaDoc > 0
+                                ) {
+
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .offset {
+                                                IntOffset(10, -10)
+                                            }
+                                            .size(18.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.Red),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+
+                                        Text(
+                                            text = if (soThongBaoChuaDoc > 9) "9+" else soThongBaoChuaDoc.toString(),
+                                            color = Color.White,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.ExtraBold
+                                        )
+                                    }
+                                }
+                            }
                         },
                         label = {
                             Text(
@@ -83,6 +155,10 @@ fun MainScreen(
                             ) {
                                 if (isLoggedIn) {
                                     selectedItem = index
+
+                                    if (item == BottomNavItem.Notification) {
+                                        soThongBaoChuaDoc = 0
+                                    }
                                 } else {
                                     onRequireLogin()
                                 }
@@ -115,14 +191,19 @@ fun MainScreen(
                     gioHangDao = gioHangDao
                 )
                 1 -> ManHinhChat()
-                2 -> ManHinhThongBao()
+                2 -> ManHinhThongBao(
+                    onOpenOrderDetail = { orderId ->
+                        onNavigateToOrderDetail(orderId)
+                    }
+                )
                 3 -> ManHinhToi(
                     onLogoutSuccess = onRequireLogin,
                     onNavigateToAddressBook = onNavigateToAddressBook,
                     onNavigateToFavorite = onNavigateToFavorite,
                     onNavigateToAbout = onNavigateToAbout,
                     onNavigateToSupport = onNavigateToSupport,
-                    onNavigateToAccountSettings = onNavigateToAccountSettings
+                    onNavigateToAccountSettings = onNavigateToAccountSettings,
+                    onNavigateToMyOrders = onNavigateToMyOrders
                 )
             }
         }

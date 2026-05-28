@@ -1,239 +1,186 @@
 package com.example.appbangiay.ui.chat
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.NotificationsNone
-import androidx.compose.material.icons.outlined.Phone
-import androidx.compose.material.icons.outlined.Send
-import androidx.compose.material.icons.outlined.ShoppingCart
-import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.appbangiay.ui.theme.MauXanhChinh
+import com.example.appbangiay.model.TinNhanChat
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
+import android.util.Log
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 
 @Composable
 fun ManHinhChat() {
-    val primaryBlue = MauXanhChinh
-    val lightGray = Color(0xFFF1F1F1)
-    val textGray = Color(0xFF8A8A8A)
+    val context = LocalContext.current
+    val user = FirebaseAuth.getInstance().currentUser
+
+    if (user == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Bạn cần đăng nhập để chat")
+        }
+        return
+    }
+
+    val uid = user.uid
+
+    val db = FirebaseFirestore.getInstance()
+
+    var tinNhanNhap by remember { mutableStateOf("") }
+    var danhSachTinNhan by remember { mutableStateOf<List<TinNhanChat>>(emptyList()) }
+
+    LaunchedEffect(uid) {
+        db.collection("chats")
+            .document(uid)
+            .collection("messages")
+            .orderBy("createdAt", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+
+                danhSachTinNhan = snapshot.documents.map { doc ->
+                    TinNhanChat(
+                        id = doc.id,
+                        text = doc.getString("text") ?: "",
+                        sender = doc.getString("sender") ?: "",
+                        senderName = doc.getString("senderName") ?: "",
+                        createdAt = doc.getLong("createdAt") ?: 0L,
+                        seen = doc.getBoolean("seen") ?: false
+                    )
+                }
+            }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color(0xFFF5F5F5))
     ) {
-
-        // HEADER
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(primaryBlue)
-                .padding(horizontal = 12.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .height(64.dp)
+                .background(Color(0xFF064C8C)),
+            contentAlignment = Alignment.Center
         ) {
-
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.White, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "HS",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = "Tư vấn viên HoangShoes",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF64DD17))
-                    )
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "Nhân viên tư vấn",
-                        color = Color.White,
-                        fontSize = 13.sp
-                    )
-                }
-            }
-
-            Icon(
-                imageVector = Icons.Outlined.Phone,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(28.dp)
-            )
-
-            Spacer(modifier = Modifier.width(14.dp))
-
-            Icon(
-                imageVector = Icons.Default.ShoppingCart,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(28.dp)
+            Text(
+                text = "Chat với HoangShoes",
+                color = Color.White,
+                fontWeight = FontWeight.Bold
             )
         }
 
-        // CONTENT
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth()
-                .background(Color(0xFFEFEFEF)),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            items(danhSachTinNhan) { tin ->
+                val laUser = tin.sender == "user"
 
-            Icon(
-                imageVector = Icons.Outlined.ChatBubbleOutline,
-                contentDescription = null,
-                tint = Color(0xFF999999),
-                modifier = Modifier.size(64.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Xin chào! HoangShoes có thể giúp gì cho bạn?",
-                color = textGray,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            SuggestButton("Tư vấn size giày", primaryBlue)
-            Spacer(modifier = Modifier.height(10.dp))
-            SuggestButton("Chính sách bảo hành", primaryBlue)
-            Spacer(modifier = Modifier.height(10.dp))
-            SuggestButton("Kiểm tra đơn hàng", primaryBlue)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = if (laUser) Arrangement.End else Arrangement.Start
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .widthIn(max = 280.dp)
+                            .background(
+                                if (laUser) Color(0xFF064C8C) else Color.White,
+                                RoundedCornerShape(14.dp)
+                            )
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = tin.text,
+                            color = if (laUser) Color.White else Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
         }
 
-        // INPUT
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .background(Color.White)
-                .padding(horizontal = 10.dp, vertical = 10.dp),
+                .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            Icon(
-                imageVector = Icons.Outlined.Image,
-                contentDescription = null,
-                tint = primaryBlue,
-                modifier = Modifier.size(28.dp)
+            OutlinedTextField(
+                value = tinNhanNhap,
+                onValueChange = { tinNhanNhap = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Nhập tin nhắn...") },
+                shape = RoundedCornerShape(20.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(42.dp)
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(lightGray),
-                contentAlignment = Alignment.CenterStart
+            IconButton(
+                onClick = {
+                    val noiDung = tinNhanNhap.trim()
+                    if (noiDung.isEmpty()) return@IconButton
+
+                    val now = System.currentTimeMillis()
+
+                    val chatRef = db.collection("chats").document(uid)
+                    val messageRef = chatRef.collection("messages").document()
+
+                    val message = hashMapOf(
+                        "text" to noiDung,
+                        "sender" to "user",
+                        "senderName" to (user.displayName ?: "Người dùng"),
+                        "createdAt" to now,
+                        "seen" to false
+                    )
+
+                    val chatInfo = hashMapOf(
+                        "userId" to uid,
+                        "userName" to (user.displayName ?: "Người dùng"),
+                        "userEmail" to (user.email ?: ""),
+                        "userAvatar" to (user.photoUrl?.toString() ?: ""),
+                        "lastMessage" to noiDung,
+                        "lastSender" to "user",
+                        "updatedAt" to now
+                    )
+
+                    messageRef.set(message)
+                        .addOnSuccessListener {
+                            chatRef.set(chatInfo, SetOptions.merge())
+                            tinNhanNhap = ""
+                            Toast.makeText(context, "Đã gửi", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(context, "Lỗi gửi: ${e.message}", Toast.LENGTH_LONG).show()
+                            Log.e("CHAT_DEBUG", "Lỗi gửi tin nhắn", e)
+                        }
+                }
             ) {
-                Text(
-                    text = "Nhập tin nhắn ...",
-                    color = Color.Gray,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(start = 16.dp)
+                Icon(
+                    imageVector = Icons.Default.Send,
+                    contentDescription = null,
+                    tint = Color(0xFF064C8C)
                 )
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Icon(
-                imageVector = Icons.Outlined.Send,
-                contentDescription = null,
-                tint = primaryBlue,
-                modifier = Modifier.size(30.dp)
-            )
         }
-    }
-}
-
-@Composable
-private fun SuggestButton(text: String, color: Color) {
-    Box(
-        modifier = Modifier
-            .width(200.dp)
-            .height(40.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .border(1.dp, color, RoundedCornerShape(22.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            color = color,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp
-        )
-    }
-}
-
-@Composable
-private fun BottomItem(
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    selected: Boolean
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(26.dp)
-        )
-
-        Spacer(modifier = Modifier.height(2.dp))
-
-        Text(
-            text = label,
-            color = Color.White,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            fontSize = 12.sp
-        )
     }
 }

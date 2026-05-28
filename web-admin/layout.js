@@ -37,6 +37,10 @@ const adminHeaderHTML = `
                 </li>
 
                 <li class="nav-item">
+                    <a class="nav-link text-white" href="admin-chat.html">Chat</a>
+                </li>
+
+                <li class="nav-item">
                     <a class="nav-link text-white" href="admin-users-firebase.html">Người dùng Firebase</a>
                 </li>
 

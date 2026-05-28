@@ -118,6 +118,12 @@ fun ManHinhChiTiet(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    val avatarNguoiDung = FirebaseAuth
+        .getInstance()
+        .currentUser
+        ?.photoUrl
+        ?.toString()
+
     LaunchedEffect(reviewCache) {
         if (reviewCache.isNotEmpty() && danhSachDanhGia.isEmpty()) {
             danhSachDanhGia = reviewCache.map {
@@ -1109,6 +1115,11 @@ fun BangDanhGiaSanPham(
     var dangUploadAnh by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+    val avatarNguoiDung = FirebaseAuth
+        .getInstance()
+        .currentUser
+        ?.photoUrl
+        ?.toString()
 
     val chonAnhLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -1355,6 +1366,7 @@ fun BangDanhGiaSanPham(
                                             review = ProductReviewCreate(
                                                 firebaseUid = uid,
                                                 userName = hoTen,
+                                                avatarUrl = avatarNguoiDung,
                                                 rating = soSao,
                                                 comment = noiDung,
                                                 reviewImage = imageUrl
@@ -1484,6 +1496,7 @@ fun DanhSachDanhGiaThat(
                     ten = review.userName ?: "Người dùng",
                     ngay = review.createdAt?.take(10) ?: "",
                     noiDung = review.comment ?: "",
+                    avatarUrl = review.avatarUrl,
                     reviewImage = review.reviewImage,
                     adminReply = review.adminReply,
                     likeCount = review.likeCount,
@@ -1530,6 +1543,7 @@ fun DanhGiaItem(
     ten: String,
     ngay: String,
     noiDung: String,
+    avatarUrl: String? = null,
     reviewImage: String? = null,
     adminReply: String? = null,
     likeCount: Int = 0,
@@ -1540,17 +1554,28 @@ fun DanhGiaItem(
             .fillMaxWidth()
             .padding(vertical = 14.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(Color(0xFFF0F0F0), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = ten.first().toString(),
-                color = Color.White,
-                fontWeight = FontWeight.Bold
+        if (!avatarUrl.isNullOrEmpty()) {
+            AsyncImage(
+                model = avatarUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
             )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(Color.LightGray),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = ten.take(1).uppercase(),
+                    color = Color.White
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(14.dp))

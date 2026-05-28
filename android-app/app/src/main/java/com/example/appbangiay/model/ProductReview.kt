@@ -16,6 +16,9 @@ data class ProductReviewCreate(
     @SerializedName("comment")
     val comment: String?,
 
+    @SerializedName("avatar_url")
+    val avatarUrl: String? = null,
+
     @SerializedName("review_image")
     val reviewImage: String? = null
 )
@@ -54,6 +57,9 @@ data class ProductReviewOut(
 
     @SerializedName("updated_at")
     val updatedAt: String?,
+
+    @SerializedName("avatar_url")
+    val avatarUrl: String? = null,
 
     @SerializedName("like_count")
     val likeCount: Int = 0

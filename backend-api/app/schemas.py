@@ -152,6 +152,7 @@ class OrderCreate(BaseModel):
     firebase_uid: Optional[str] = None
     customer_name: Optional[str] = None
     customer_email: Optional[str] = None
+    note: Optional[str] = None
     total: float
     shipping_address: str
     payment_method: str
@@ -222,6 +223,7 @@ class ProductReviewCreate(BaseModel):
     rating: int
     comment: Optional[str] = None
     review_image: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 
 class ProductReviewOut(BaseModel):
@@ -232,6 +234,7 @@ class ProductReviewOut(BaseModel):
     rating: int
     comment: Optional[str] = None
     review_image: Optional[str] = None
+    avatar_url: Optional[str] = None
 
     is_hidden: bool = False
 
@@ -258,3 +261,30 @@ class ProductReviewSummary(BaseModel):
 class ProductReviewReplyUpdate(BaseModel):
     reply: str
 
+class AppBannerCreate(BaseModel):
+    image_url: str
+    title: Optional[str] = None
+    is_active: bool = True
+    display_order: int = 0
+
+class AppBannerOut(AppBannerCreate):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class NotificationCreate(BaseModel):
+    firebase_uid: Optional[str] = None
+    title: str
+    message: str
+    type: str = "system"
+    related_order_id: Optional[int] = None
+
+
+class NotificationOut(NotificationCreate):
+    id: int
+    is_read: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

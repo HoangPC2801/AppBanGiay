@@ -33,6 +33,13 @@ import androidx.compose.runtime.collectAsState
 import com.google.firebase.auth.FirebaseAuth
 import com.example.appbangiay.ui.components.CartIconWithBadge
 import com.example.appbangiay.database.GioHangDao
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
+import com.example.appbangiay.model.AppBanner
+import com.example.appbangiay.network.KetNoiServer
 
 @Composable
 fun ManHinhTrangChu(
@@ -49,6 +56,16 @@ fun ManHinhTrangChu(
     val danhSachGiay by viewModel.danhSachGiay.collectAsState()
     val dangTai by viewModel.trangThaiTai.collectAsState()
     val firebaseUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+    var danhSachBanner by remember { mutableStateOf<List<AppBanner>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        try {
+            danhSachBanner = KetNoiServer.api.layDanhSachBanner()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     val soLuongGioHang by gioHangDao
         .layTongSoLuongGioHang(firebaseUid)
@@ -122,22 +139,9 @@ fun ManHinhTrangChu(
 
             Spacer(modifier = Modifier.height(12.dp))
             // 2. BANNER QUẢNG CÁO
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Image(
-                        painter = painterResource(id = R.drawable.banner_giay),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
+            BannerAutoSlider(
+                banners = danhSachBanner
+            )
 
             // 3. DANH MỤC THƯƠNG HIỆU
             Text(
@@ -463,5 +467,68 @@ fun SheetItem(
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun BannerAutoSlider(
+    banners: List<AppBanner>
+) {
+    if (banners.isEmpty()) return
+
+    val pagerState = rememberPagerState(
+        pageCount = { banners.size }
+    )
+
+    LaunchedEffect(banners.size) {
+        while (true) {
+            kotlinx.coroutines.delay(5000)
+
+            val nextPage = (pagerState.currentPage + 1) % banners.size
+
+            pagerState.animateScrollToPage(nextPage)
+        }
+    }
+
+    Column {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .padding(horizontal = 16.dp)
+        ) { page ->
+            AsyncImage(
+                model = banners[page].imageUrl,
+                contentDescription = banners[page].title,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(18.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            repeat(banners.size) { index ->
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .size(if (pagerState.currentPage == index) 10.dp else 7.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (pagerState.currentPage == index)
+                                Color(0xFF064C8C)
+                            else
+                                Color.LightGray
+                        )
+                )
+            }
+        }
     }
 }

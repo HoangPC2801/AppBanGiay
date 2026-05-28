@@ -72,6 +72,7 @@ def get_product_reviews(
             "admin_reply_at": review.admin_reply_at,
             "created_at": review.created_at,
             "updated_at": review.updated_at,
+            "avatar_url": review.avatar_url,
             "like_count": like_count
         })
 
@@ -149,6 +150,7 @@ def create_product_review(
         existing.rating = review.rating
         existing.comment = review.comment
         existing.review_image = review.review_image
+        existing.avatar_url = review.avatar_url
 
         db.commit()
         db.refresh(existing)
@@ -161,6 +163,7 @@ def create_product_review(
         user_name=review.user_name,
         rating=review.rating,
         comment=review.comment,
+        avatar_url=review.avatar_url,
         review_image=review.review_image
     )
 
@@ -190,6 +193,10 @@ def get_all_reviews(db: Session = Depends(database.get_db)):
             "user_name": review.user_name,
             "rating": review.rating,
             "comment": review.comment,
+            "review_image": review.review_image,
+            "admin_reply": review.admin_reply,
+            "is_hidden": review.is_hidden,
+            "avatar_url": review.avatar_url,
             "created_at": review.created_at
         }
         for review, product in reviews
@@ -209,50 +216,19 @@ def delete_review(review_id: int, db: Session = Depends(database.get_db)):
     return {"message": "Deleted"}
 
 @router.patch("/reviews/admin/{review_id}/hide")
-def hide_review(
-    review_id: int,
-    db: Session = Depends(database.get_db)
-):
-    review = (
-        db.query(models.ProductReview)
-        .filter(models.ProductReview.id == review_id)
-        .first()
-    )
+def hide_review(review_id: int, db: Session = Depends(database.get_db)):
+    review = db.query(models.ProductReview).filter(
+        models.ProductReview.id == review_id
+    ).first()
 
     if not review:
-        raise HTTPException(
-            status_code=404,
-            detail="Review not found"
-        )
+        raise HTTPException(status_code=404, detail="Không tìm thấy đánh giá")
 
     review.is_hidden = True
-
     db.commit()
 
-    return {"message": "Review hidden"}
+    return {"message": "Đã ẩn đánh giá"}
 
-@router.patch("/reviews/admin/{review_id}/show")
-def show_review(
-    review_id: int,
-    db: Session = Depends(database.get_db)
-):
-    review = (
-        db.query(models.ProductReview)
-        .filter(models.ProductReview.id == review_id)
-        .first()
-    )
-
-    if not review:
-        raise HTTPException(
-            status_code=404,
-            detail="Review not found"
-        )
-
-    review.is_hidden = False
-
-    db.commit()
-
-    return {"message": "Review shown"}
 
 @router.post("/reviews/{review_id}/like")
 def like_review(
@@ -316,3 +292,17 @@ def reply_review(
     return {
         "message": "Replied"
     }
+
+@router.patch("/reviews/admin/{review_id}/show")
+def show_review(review_id: int, db: Session = Depends(database.get_db)):
+    review = db.query(models.ProductReview).filter(
+        models.ProductReview.id == review_id
+    ).first()
+
+    if not review:
+        raise HTTPException(status_code=404, detail="Không tìm thấy đánh giá")
+
+    review.is_hidden = False
+    db.commit()
+
+    return {"message": "Đã hiện lại đánh giá"}

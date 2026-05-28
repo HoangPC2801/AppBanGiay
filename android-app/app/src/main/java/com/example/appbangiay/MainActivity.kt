@@ -46,6 +46,8 @@ import com.example.appbangiay.ui.about.ManHinhVeHoangShoe
 import com.example.appbangiay.ui.support.ManHinhTrungTamHoTro
 import com.example.appbangiay.ui.settings.ManHinhCaiDatTaiKhoan
 import com.example.appbangiay.model.GioHang
+import com.example.appbangiay.ui.order.ManHinhDonHangCuaToi
+import com.example.appbangiay.ui.order.ManHinhChiTietDonHang
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -209,6 +211,12 @@ fun AppNavigation() {
                 },
                 onNavigateToAccountSettings = {
                     navController.navigate(Screen.AccountSettings.route)
+                },
+                onNavigateToMyOrders = { status ->
+                    navController.navigate("my_orders/$status")
+                },
+                onNavigateToOrderDetail = { orderId ->
+                    navController.navigate("order_detail/$orderId")
                 },
                 isLoggedIn = daDangNhap(),
                 gioHangDao = gioHangDao
@@ -436,6 +444,45 @@ fun AppNavigation() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        composable(
+            route = "my_orders/{status}",
+            arguments = listOf(
+                navArgument("status") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val status = backStackEntry.arguments?.getString("status") ?: "pending"
+
+            ManHinhDonHangCuaToi(
+                trangThaiMacDinh = status,
+                quayLai = {
+                    navController.popBackStack()
+                },
+                onOpenOrderDetail = { orderId ->
+                    navController.navigate("order_detail/$orderId")
+                }
+            )
+        }
+
+        composable(
+            route = "order_detail/{orderId}",
+            arguments = listOf(
+                navArgument("orderId") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getInt("orderId") ?: 0
+
+            ManHinhChiTietDonHang(
+                orderId = orderId,
+                quayLai = {
+                    navController.popBackStack()
                 }
             )
         }
