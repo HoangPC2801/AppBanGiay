@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from .. import models, schemas, database
+from app.services.fcm_service import send_push_notification
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
@@ -40,6 +41,30 @@ def create_notification(
     db.add(new_notification)
     db.commit()
     db.refresh(new_notification)
+
+    if notification.type == "promotion":
+        query = db.query(models.FcmToken)
+
+        if notification.firebase_uid:
+            query = query.filter(
+                models.FcmToken.firebase_uid == notification.firebase_uid
+            )
+
+        tokens = query.all()
+
+        for token_item in tokens:
+            try:
+                send_push_notification(
+                    token=token_item.token,
+                    title=notification.title,
+                    body=notification.message,
+                    data={
+                        "type": "promotion",
+                        "notification_id": str(new_notification.id)
+                    }
+                )
+            except Exception as e:
+                print("Lỗi gửi FCM:", e)
 
     return new_notification
 

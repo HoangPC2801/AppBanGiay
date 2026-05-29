@@ -53,9 +53,45 @@ fun MainScreen(
     onNavigateToMyOrders: (String) -> Unit,
     isLoggedIn: Boolean,
     onNavigateToOrderDetail: (Int) -> Unit,
-    gioHangDao: GioHangDao
+    gioHangDao: GioHangDao,
+    moChatSanPhamNgay: Boolean = false,
+    moThongBaoNgay: Boolean = false,
+    chatProductId: Int? = null,
+    chatProductName: String? = null,
+    chatProductPrice: Int? = null,
+    chatProductImage: String? = null
 ) {
+    val firebaseUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+    val soLuongGioHang by gioHangDao
+        .layTongSoLuongGioHang(firebaseUid)
+        .collectAsState(initial = 0)
     var selectedItem by rememberSaveable { mutableStateOf(0) }
+
+    var daXuLyMoChatSanPham by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(chatProductId) {
+        if (
+            moChatSanPhamNgay &&
+            chatProductId != null &&
+            !daXuLyMoChatSanPham
+        ) {
+            selectedItem = 1
+            daXuLyMoChatSanPham = true
+        }
+    }
+    var daXuLyMoThongBao by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(moThongBaoNgay) {
+        if (moThongBaoNgay && !daXuLyMoThongBao) {
+            selectedItem = 2
+            daXuLyMoThongBao = true
+        }
+    }
     var soThongBaoChuaDoc by remember {
         mutableStateOf(0)
     }
@@ -190,7 +226,15 @@ fun MainScreen(
                     chuyenSangGioHang = onNavigateToCart,
                     gioHangDao = gioHangDao
                 )
-                1 -> ManHinhChat()
+                1 -> ManHinhChat(
+                    soLuongGioHang = soLuongGioHang,
+                    chuyenSangGioHang = onNavigateToCart,
+                    chuyenSangChiTiet = onNavigateToDetail,
+                    sanPhamId = if (selectedItem == 1) chatProductId else null,
+                    tenSanPham = if (selectedItem == 1) chatProductName else null,
+                    giaSanPham = if (selectedItem == 1) chatProductPrice else null,
+                    anhSanPham = if (selectedItem == 1) chatProductImage else null
+                )
                 2 -> ManHinhThongBao(
                     onOpenOrderDetail = { orderId ->
                         onNavigateToOrderDetail(orderId)

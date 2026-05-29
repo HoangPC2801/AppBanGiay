@@ -483,7 +483,7 @@ fun BannerAutoSlider(
 
     LaunchedEffect(banners.size) {
         while (true) {
-            kotlinx.coroutines.delay(5000)
+            kotlinx.coroutines.delay(2000)
 
             val nextPage = (pagerState.currentPage + 1) % banners.size
 

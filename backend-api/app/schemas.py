@@ -288,3 +288,7 @@ class NotificationOut(NotificationCreate):
 
     class Config:
         from_attributes = True
+
+class FcmTokenCreate(BaseModel):
+    firebase_uid: str
+    token: str

@@ -105,12 +105,43 @@
                 const msg = docSnap.data();
                 const isAdmin = msg.sender === "admin";
 
-                messagesBox.innerHTML += `
-                    <div class="d-flex mb-2 ${isAdmin ? 'justify-content-end' : 'justify-content-start'}">
+                let messageHtml = "";
+
+                if (msg.messageType === "product") {
+                    messageHtml = `
+                        <div class="card border-primary" style="width: 240px;">
+                            <img src="${escapeHtml(msg.productImage || '')}"
+                                class="card-img-top"
+                                style="height:140px;object-fit:contain;padding:8px;">
+
+                            <div class="card-body p-2">
+                                <div class="fw-bold" style="font-size:14px;">
+                                    ${escapeHtml(msg.productName || 'Sản phẩm')}
+                                </div>
+
+                                <div class="text-danger fw-bold mt-1">
+                                    ${Number(msg.productPrice || 0).toLocaleString('vi-VN')}đ
+                                </div>
+
+                                <a href="admin-products.html"
+                                class="btn btn-sm btn-primary mt-2 w-100">
+                                    Xem sản phẩm
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    messageHtml = `
                         <div class="p-2 rounded ${isAdmin ? 'bg-primary text-white' : 'bg-light border'}"
-                             style="max-width: 70%;">
+                            style="max-width: 70%;">
                             ${escapeHtml(msg.text || '')}
                         </div>
+                    `;
+                }
+
+                messagesBox.innerHTML += `
+                    <div class="d-flex mb-2 ${isAdmin ? 'justify-content-end' : 'justify-content-start'}">
+                        ${messageHtml}
                     </div>
                 `;
             });

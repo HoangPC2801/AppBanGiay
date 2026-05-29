@@ -81,6 +81,12 @@ fun ManHinhChiTiet(
     chuyenSangGioHang: () -> Unit,
     yeuCauDangNhap: () -> Unit,
     muaNgay: (GioHang) -> Unit = {},
+    chuyenSangChatSanPham: (
+        maGiay: Int,
+        tenGiay: String,
+        giaTien: Float,
+        hinhAnh: String?
+    ) -> Unit,
     gioHangDao: GioHangDao
 ) {
     val viewModel: ChiTietGiayViewModel = viewModel(
@@ -199,7 +205,7 @@ fun ManHinhChiTiet(
                     .fillMaxWidth()
                     .statusBarsPadding()
                     .height(64.dp)
-                    .background(Color.White)
+                    .background(Color(0xFF064C8C))
                     .padding(horizontal = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -208,7 +214,7 @@ fun ManHinhChiTiet(
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Quay lại",
-                        tint = Color(0xFF064C8C),
+                        tint = Color.White,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -218,14 +224,23 @@ fun ManHinhChiTiet(
                     onClick = {
                         chuyenSangGioHang()
                     },
-                    iconColor = Color(0xFF064C8C)
+                    iconColor = Color.White
                 )
             }
         },
         bottomBar = {
             BottomActionBar(
                 gia = giay?.giaTien ?: 0f,
-                onChatClick = {},
+                onChatClick = {
+                    giay?.let {
+                        chuyenSangChatSanPham(
+                            it.maGiay,
+                            it.tenGiay,
+                            it.giaTien,
+                            it.hinhAnh
+                        )
+                    }
+                },
                 onCartClick = {
                     if ((giay?.variants?.isNotEmpty() == true) && (mauDaChon == null || sizeDaChon == null)) {
                         Toast.makeText(

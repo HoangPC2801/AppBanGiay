@@ -7,6 +7,7 @@ from .routers import firebase_users
 from .routers import reviews
 from app.routers import app_banners
 from app.routers import notifications
+from app.routers import fcm
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -39,6 +40,7 @@ app.include_router(firebase_users.router)
 app.include_router(reviews.router)
 app.include_router(app_banners.router)
 app.include_router(notifications.router)
+app.include_router(fcm.router)
 
 @app.get("/")
 def home():

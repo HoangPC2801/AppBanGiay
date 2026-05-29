@@ -395,3 +395,23 @@ def tao_thong_bao_don_hang(db: Session, order: models.Order, status_moi: str):
     )
 
     db.add(thong_bao)
+
+    from app.services.fcm_service import send_push_notification
+
+    tokens = db.query(models.FcmToken).filter(
+        models.FcmToken.firebase_uid == order.firebase_uid
+    ).all()
+
+    for token_item in tokens:
+        try:
+            send_push_notification(
+                token=token_item.token,
+                title=tieu_de,
+                body=noi_dung,
+                data={
+                    "type": "order",
+                    "order_id": str(order.id)
+                }
+            )
+        except Exception as e:
+            print("Lỗi gửi FCM:", e)

@@ -21,6 +21,7 @@ import com.example.appbangiay.model.ChiTietDonHang
 import retrofit2.http.PATCH
 import com.example.appbangiay.model.ThongBao
 import com.example.appbangiay.model.ThongBaoChuaDocResponse
+import com.example.appbangiay.model.FcmTokenRequest
 
 // Định nghĩa các endpoint API
 interface ApiDichVu {
@@ -90,6 +91,11 @@ interface ApiDichVu {
     suspend fun laySoThongBaoChuaDoc(
         @Query("firebase_uid") firebaseUid: String
     ): ThongBaoChuaDocResponse
+
+    @POST("fcm/token")
+    suspend fun luuFcmToken(
+        @Body request: FcmTokenRequest
+    ): ResponseBody
 }
 
 // Khởi tạo Retrofit Client

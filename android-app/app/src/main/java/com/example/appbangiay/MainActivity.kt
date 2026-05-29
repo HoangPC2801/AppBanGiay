@@ -48,6 +48,14 @@ import com.example.appbangiay.ui.settings.ManHinhCaiDatTaiKhoan
 import com.example.appbangiay.model.GioHang
 import com.example.appbangiay.ui.order.ManHinhDonHangCuaToi
 import com.example.appbangiay.ui.order.ManHinhChiTietDonHang
+import android.net.Uri
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.example.appbangiay.model.FcmTokenRequest
+import com.example.appbangiay.network.KetNoiServer
+import androidx.compose.runtime.LaunchedEffect
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,15 +70,52 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    val type = intent?.getStringExtra("type") ?: ""
+                    val orderId = intent?.getStringExtra("order_id") ?: ""
+
+                    AppNavigation(
+                        notificationType = type,
+                        notificationOrderId = orderId
+                    )
                 }
             }
         }
     }
 }
 
+fun guiFcmTokenLenServer() {
+    val user = FirebaseAuth.getInstance().currentUser ?: return
+
+    FirebaseMessaging.getInstance().token
+        .addOnSuccessListener { token ->
+
+            println("FCM_TOKEN = $token")
+
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+
+                    println("ĐÃ GỌI API LƯU TOKEN")
+
+                    KetNoiServer.api.luuFcmToken(
+                        FcmTokenRequest(
+                            firebaseUid = user.uid,
+                            token = token
+                        )
+                    )
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    println("LỖI FCM API")
+                }
+            }
+        }
+}
+
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    notificationType: String = "",
+    notificationOrderId: String = ""
+) {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
@@ -80,11 +125,29 @@ fun AppNavigation() {
         return FirebaseAuth.getInstance().currentUser != null
     }
 
+    LaunchedEffect(daDangNhap()) {
+        if (daDangNhap()) {
+            println("ĐANG GỬI TOKEN LÊN SERVER")
+            guiFcmTokenLenServer()
+        }
+    }
+
     val db = HeThongDatabase.layDatabase(context)
     val gioHangDao = db.gioHangDao()
     val diaChiDao = db.diaChiDao()
     val yeuThichDao = db.yeuThichDao()
     val reviewCacheDao = db.reviewCacheDao()
+
+    LaunchedEffect(notificationType, notificationOrderId) {
+        if (notificationType == "order" && notificationOrderId.isNotBlank()) {
+            navController.navigate("order_detail/$notificationOrderId")
+        } else if (
+            notificationType == "promotion" ||
+            notificationType == "system"
+        ) {
+            navController.navigate("home_notification")
+        }
+    }
 
     NavHost(navController = navController, startDestination = "splash_screen") {
 
@@ -256,6 +319,19 @@ fun AppNavigation() {
                         ?.set("san_pham_mua_ngay", sanPham)
 
                     navController.navigate("checkout_screen?mode=buy_now")
+                },
+                chuyenSangChatSanPham = { maGiay, tenGiay, giaTien, hinhAnh ->
+                    navController.navigate(
+                        "home_chat_product/" +
+                                "$maGiay/" +
+                                "${Uri.encode(tenGiay)}/" +
+                                "${giaTien.toInt()}/" +
+                                "${Uri.encode(hinhAnh ?: "")}"
+                    ) {
+                        popUpTo(Screen.Home.route) {
+                            inclusive = false
+                        }
+                    }
                 },
                 gioHangDao = gioHangDao
             )
@@ -487,6 +563,124 @@ fun AppNavigation() {
             )
         }
 
+        composable(
+            route = "home_chat_product/{productId}/{productName}/{productPrice}/{productImage}",
+            arguments = listOf(
+                navArgument("productId") { type = NavType.IntType },
+                navArgument("productName") { type = NavType.StringType },
+                navArgument("productPrice") { type = NavType.IntType },
+                navArgument("productImage") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+
+            val productId = backStackEntry.arguments?.getInt("productId")
+            val productName = backStackEntry.arguments?.getString("productName")
+            val productPrice = backStackEntry.arguments?.getInt("productPrice")
+            val productImage = backStackEntry.arguments?.getString("productImage")
+
+            MainScreen(
+                onNavigateToDetail = { maGiay ->
+                    navController.navigate(Screen.ChiTiet.taoDuongDan(maGiay))
+                },
+                onNavigateToBrand = { brand ->
+                    navController.navigate(Screen.SanPhamTheoThuongHieu.taoDuongDan(brand))
+                },
+                onNavigateToCategory = { category ->
+                    navController.navigate("category_products/$category")
+                },
+                onRequireLogin = {
+                    navController.navigate(Screen.Login.route)
+                },
+                onNavigateToSearch = {
+                    navController.navigate(Screen.Search.route)
+                },
+                onNavigateToCart = {
+                    val currentUser = FirebaseAuth.getInstance().currentUser
+
+                    if (currentUser == null) {
+                        navController.navigate(Screen.Login.route)
+                    } else {
+                        navController.navigate(Screen.Cart.route)
+                    }
+                },
+                onNavigateToAddressBook = {
+                    navController.navigate(Screen.AddressBook.route)
+                },
+                onNavigateToFavorite = {
+                    navController.navigate(Screen.Favorite.route)
+                },
+                onNavigateToAbout = {
+                    navController.navigate(Screen.About.route)
+                },
+                onNavigateToSupport = {
+                    navController.navigate(Screen.Support.route)
+                },
+                onNavigateToAccountSettings = {
+                    navController.navigate(Screen.AccountSettings.route)
+                },
+                onNavigateToMyOrders = { status ->
+                    navController.navigate("my_orders/$status")
+                },
+                onNavigateToOrderDetail = { orderId ->
+                    navController.navigate("order_detail/$orderId")
+                },
+                isLoggedIn = daDangNhap(),
+                gioHangDao = gioHangDao,
+
+                moChatSanPhamNgay = true,
+                chatProductId = productId,
+                chatProductName = productName,
+                chatProductPrice = productPrice,
+                chatProductImage = productImage
+            )
+        }
+
+        composable("home_notification") {
+            MainScreen(
+                onNavigateToDetail = { maGiay ->
+                    navController.navigate(Screen.ChiTiet.taoDuongDan(maGiay))
+                },
+                onNavigateToBrand = { brand ->
+                    navController.navigate(Screen.SanPhamTheoThuongHieu.taoDuongDan(brand))
+                },
+                onNavigateToCategory = { category ->
+                    navController.navigate("category_products/$category")
+                },
+                onRequireLogin = {
+                    navController.navigate(Screen.Login.route)
+                },
+                onNavigateToSearch = {
+                    navController.navigate(Screen.Search.route)
+                },
+                onNavigateToCart = {
+                    navController.navigate(Screen.Cart.route)
+                },
+                onNavigateToAddressBook = {
+                    navController.navigate(Screen.AddressBook.route)
+                },
+                onNavigateToFavorite = {
+                    navController.navigate(Screen.Favorite.route)
+                },
+                onNavigateToAbout = {
+                    navController.navigate(Screen.About.route)
+                },
+                onNavigateToSupport = {
+                    navController.navigate(Screen.Support.route)
+                },
+                onNavigateToAccountSettings = {
+                    navController.navigate(Screen.AccountSettings.route)
+                },
+                onNavigateToMyOrders = { status ->
+                    navController.navigate("my_orders/$status")
+                },
+                onNavigateToOrderDetail = { orderId ->
+                    navController.navigate("order_detail/$orderId")
+                },
+                isLoggedIn = daDangNhap(),
+                gioHangDao = gioHangDao,
+                moThongBaoNgay = true
+            )
+        }
+
     }
 }
-
