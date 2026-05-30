@@ -1,0 +1,30 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: bangiay_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: hoang0idol
+      MYSQL_DATABASE: bangiay
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+    - "3307:3306"
+    volumes:
+      - bangiay_mysql_data:/var/lib/mysql
+      - ./database/bangiay.sql:/docker-entrypoint-initdb.d/bangiay.sql:ro
+
+  backend:
+    build: ./backend-api
+    container_name: bangiay_backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mysql+pymysql://root:hoang0idol@db:3306/bangiay
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend-api/firebase-service-account.json:/app/firebase-service-account.json:ro
+
+volumes:
+  bangiay_mysql_data:

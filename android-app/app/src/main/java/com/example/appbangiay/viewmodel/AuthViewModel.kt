@@ -27,9 +27,7 @@ class AuthViewModel : ViewModel() {
             _authState.value = AuthState.Error("Vui lòng nhập đầy đủ Email và Mật khẩu")
             return
         }
-
         _authState.value = AuthState.Loading
-
         auth.signInWithEmailAndPassword(email, pass)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
