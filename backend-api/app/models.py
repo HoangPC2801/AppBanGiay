@@ -63,7 +63,6 @@ class Product(Base):
     season = Column(String(50), nullable=True)
     style = Column(String(100), nullable=True)
     
-    # Trong SQLAlchemy, Boolean sẽ tự động map với tinyint(1) trong MySQL
     is_active = Column(Boolean, default=True)
 
     variants = relationship(
@@ -132,9 +131,9 @@ class Admin(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
-    password_hash = Column(String(255), nullable=False) # Chú ý: Cột này lưu mật khẩu đã mã hóa
+    password_hash = Column(String(255), nullable=False) 
     full_name = Column(String(100), nullable=False)
-    role = Column(String(20), nullable=False, default="manager") # Phân quyền: 'manager' hoặc 'superadmin'
+    role = Column(String(20), nullable=False, default="manager") 
 
 class ProductReview(Base):
     __tablename__ = "product_reviews"

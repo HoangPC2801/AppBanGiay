@@ -77,14 +77,12 @@
     const API_ORDERS = 'http://127.0.0.1:8000/orders/';
     const API_FIREBASE_USERS = 'http://127.0.0.1:8000/firebase-users/';
 
-    // Hàm định dạng ngày tháng
     function formatDate(dateString) {
         if (!dateString) return 'N/A';
         const d = new Date(dateString);
         return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN');
     }
 
-    // Tải dữ liệu thống kê
     async function loadStats() {
         try {
             const response = await fetch(API_DASHBOARD);
@@ -103,7 +101,6 @@
         }
     }
 
-    // Tải danh sách đơn hàng gần đây
     async function loadRecentOrders() {
         try {
             const response = await fetch(API_ORDERS);
@@ -112,7 +109,6 @@
             const tbody = document.getElementById('recent-orders-body');
             tbody.innerHTML = '';
 
-            // Cắt lấy tối đa 10 đơn hàng mới nhất
             const recentOrders = orders.slice(0, 10);
 
             if (recentOrders.length === 0) {
@@ -167,7 +163,6 @@
         }
     }
 
-    // Chạy khi tải trang
     window.onload = () => {
         loadStats();
         loadRecentOrders();

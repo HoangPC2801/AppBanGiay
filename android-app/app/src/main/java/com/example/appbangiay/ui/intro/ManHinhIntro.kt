@@ -30,7 +30,6 @@ import kotlinx.coroutines.launch
 import com.example.appbangiay.R
 import com.example.appbangiay.ui.theme.MauXanhChinh
 
-// Cấu trúc dữ liệu cho mỗi trang Intro
 data class IntroPage(
     @DrawableRes val imageRes: Int,
     val title: String,
@@ -61,7 +60,6 @@ fun IntroScreen(onFinishIntro: () -> Unit) {
     val primaryBlue = MauXanhChinh
     val inactiveGray = Color(0xFFD9D9D9)
 
-    // Quản lý trạng thái của Pager (Vuốt qua lại)
     val pagerState = rememberPagerState(pageCount = { introPages.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -70,7 +68,6 @@ fun IntroScreen(onFinishIntro: () -> Unit) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // --- VẼ BACKGROUND SÓNG TĨNH (Giống hệt Splash Screen) ---
         Canvas(modifier = Modifier.fillMaxWidth().height(220.dp).align(Alignment.TopCenter)) {
             val path = Path().apply {
                 moveTo(0f, 0f)
@@ -100,12 +97,10 @@ fun IntroScreen(onFinishIntro: () -> Unit) {
             drawPath(path = path, color = primaryBlue)
         }
 
-        // --- NỘI DUNG CHÍNH (PAGER) ---
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Phần lướt ảnh và chữ chiếm phần lớn không gian
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f)
@@ -124,7 +119,7 @@ fun IntroScreen(onFinishIntro: () -> Unit) {
                         contentDescription = "Intro Image",
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp) // Bạn có thể chỉnh chiều cao ảnh ở đây
+                            .height(200.dp)
                     )
 
                     Spacer(modifier = Modifier.height(40.dp))
@@ -149,14 +144,12 @@ fun IntroScreen(onFinishIntro: () -> Unit) {
                 }
             }
 
-            // --- ĐIỀU HƯỚNG VÀ NÚT BẤM (Nằm ở dưới cùng) ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 60.dp), // Nâng lên 1 chút cho khỏi đè vào sóng dưới
+                    .padding(bottom = 60.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 1. Dấu chấm (Dots Indicator)
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
@@ -176,21 +169,18 @@ fun IntroScreen(onFinishIntro: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 2. Nút Tiếp tục / Bắt đầu
                 Button(
                     onClick = {
                         if (pagerState.currentPage == introPages.size - 1) {
-                            // Nếu đang ở trang cuối -> Xong Intro, nhảy vào app
                             onFinishIntro()
                         } else {
-                            // Nếu chưa ở trang cuối -> Cuộn sang trang tiếp theo
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
                             }
                         }
                     },
                     modifier = Modifier
-                        .fillMaxWidth(0.7f) // Chiều rộng bằng 70% màn hình
+                        .fillMaxWidth(0.7f)
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                     shape = RoundedCornerShape(12.dp)
@@ -205,14 +195,13 @@ fun IntroScreen(onFinishIntro: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 3. Nút Bỏ qua (Skip)
                 Text(
                     text = "Bỏ qua",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     modifier = Modifier
-                        .clickable { onFinishIntro() } // Bấm bỏ qua thì vào app luôn
+                        .clickable { onFinishIntro() }
                         .padding(8.dp)
                 )
             }

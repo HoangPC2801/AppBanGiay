@@ -23,7 +23,6 @@ import com.example.appbangiay.model.ThongBao
 import com.example.appbangiay.model.ThongBaoChuaDocResponse
 import com.example.appbangiay.model.FcmTokenRequest
 
-// Định nghĩa các endpoint API
 interface ApiDichVu {
     @GET("products/")
     suspend fun layDanhSachGiay(): List<Giay>
@@ -98,7 +97,6 @@ interface ApiDichVu {
     ): ResponseBody
 }
 
-// Khởi tạo Retrofit Client
 object KetNoiServer {
     private const val BASE_URL = "http://10.0.2.2:8000/" // Dành cho máy ảo Android
 

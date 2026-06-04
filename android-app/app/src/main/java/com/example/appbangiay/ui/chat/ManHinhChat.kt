@@ -73,7 +73,6 @@ fun ManHinhChat(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // SỬA LỖI 1: Thay LaunchedEffect bằng DisposableEffect để dọn dẹp Listener khi thoát màn hình
     DisposableEffect(uid) {
         val listener = db.collection("chats")
             .document(uid)
@@ -104,13 +103,11 @@ fun ManHinhChat(
                 }
             }
 
-        // Hủy lắng nghe dữ liệu ngầm khi component bị hủy
         onDispose {
             listener.remove()
         }
     }
 
-    // SỬA LỖI 2: Tự động cuộn xuống cuối cùng mỗi khi danh sách tin nhắn có sự thay đổi
     LaunchedEffect(danhSachTinNhan.size) {
         if (danhSachTinNhan.isNotEmpty()) {
             listState.animateScrollToItem(danhSachTinNhan.size - 1)
@@ -121,7 +118,7 @@ fun ManHinhChat(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
-            .imePadding() // SỬA LỖI 3: Thêm imePadding để màn hình đẩy lên khi bật bàn phím ảo
+            .imePadding()
     ) {
         Row(
             modifier = Modifier

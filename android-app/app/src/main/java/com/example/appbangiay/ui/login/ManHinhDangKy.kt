@@ -57,7 +57,7 @@ fun RegisterScreen(
             is AuthState.Success -> {
                 Toast.makeText(context, "Đăng ký thành công!", Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
-                onRegisterSuccess() // Chuyển thẳng vào Home vì Firebase tự đăng nhập sau khi tạo
+                onRegisterSuccess()
             }
             is AuthState.Error -> {
                 val errorMessage = (authState as AuthState.Error).message
@@ -73,7 +73,6 @@ fun RegisterScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // --- 1. VẼ ĐƯỜNG SÓNG (Giống màn hình Login) ---
         Canvas(modifier = Modifier.fillMaxWidth().height(220.dp).align(Alignment.TopCenter)) {
             val path = Path().apply {
                 moveTo(0f, 0f)
@@ -103,7 +102,6 @@ fun RegisterScreen(
             drawPath(path = path, color = primaryBlue)
         }
 
-        // --- 2. NỘI DUNG CHÍNH (ĐĂNG KÝ) ---
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -120,7 +118,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Ô nhập Email
             TextField(
                 value = email,
                 onValueChange = { email = it },
@@ -171,7 +168,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Ô nhập Xác nhận mật khẩu
             TextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
@@ -221,7 +217,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Chữ: Đã có tài khoản, Đăng nhập
             Text(
                 text = buildAnnotatedString {
                     append("Đã có tài khoản, ")

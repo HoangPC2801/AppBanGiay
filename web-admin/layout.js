@@ -118,7 +118,7 @@ function handleLogout() {
     }
 }
 
-// 7. Auto load
+// Auto load
 document.addEventListener('DOMContentLoaded', loadLayout);
 
 
@@ -132,7 +132,6 @@ async function loadDashboard() {
         if (!response.ok) throw new Error("Lỗi tải dashboard");
         const data = await response.json();
         
-        // Đổ 4 con số thống kê (bạn nhớ gắn ID tương ứng vào các thẻ HTML nhé)
         document.getElementById('stat-orders').innerText = data.total_orders;
         document.getElementById('stat-revenue').innerText = data.total_revenue.toLocaleString() + ' VNĐ';
         document.getElementById('stat-products').innerText = data.total_products;
@@ -172,7 +171,6 @@ async function loadOrders(statusFilter = '') {
         const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
         const orders = await response.json();
         
-        // Dòng này giúp bạn nhìn thấy rốt cuộc API đang trả về cái gì
         console.log("Dữ liệu danh sách đơn hàng:", orders); 
 
         const tbody = document.getElementById('orders-table');
@@ -184,7 +182,6 @@ async function loadOrders(statusFilter = '') {
             const orderId = order.id || order.order_id;
             const date = new Date(order.created_at).toLocaleString('vi-VN');
             
-            // CHÚ Ý: orderId được bọc trong dấu nháy đơn ('${orderId}') để tránh lỗi undefined
             let cancelBtn = order.status === 'pending' 
                 ? `<button class="btn btn-sm btn-danger ms-1" onclick="updateOrderStatus('${orderId}', 'cancelled')">Hủy</button>` 
                 : '';
@@ -291,7 +288,6 @@ async function viewOrderDetail(orderId) {
             }
         });
 
-        // Nếu Backend trả về lỗi (404, 500...), bóc tách thông báo lỗi ra hiển thị
         if (!response.ok) {
             const errData = await response.json();
             alert("Lỗi từ máy chủ: " + (errData.detail || "Không thể tải chi tiết đơn hàng"));
@@ -300,7 +296,6 @@ async function viewOrderDetail(orderId) {
 
         const order = await response.json();
 
-        // Đổ thông tin cơ bản của đơn hàng lên Modal
         document.getElementById('detail-order-id').innerText = order.id;
         document.getElementById('detail-order-date').innerText = new Date(order.created_at).toLocaleString('vi-VN');
         document.getElementById('detail-order-total').innerText = order.total.toLocaleString() + ' VNĐ';
@@ -311,7 +306,6 @@ async function viewOrderDetail(orderId) {
         if (tbody) {
             tbody.innerHTML = ''; // Xóa sạch dữ liệu cũ trước khi đổ mới
 
-            // Nếu không có chi tiết món hàng hoặc mảng trống
             if (!order.items || order.items.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">Đơn hàng này không có chi tiết sản phẩm.</td></tr>`;
             } else {
@@ -336,7 +330,6 @@ async function viewOrderDetail(orderId) {
             }
         }
 
-        // Kích hoạt hiển thị Bootstrap Modal bằng JavaScript
         const detailModalEl = document.getElementById('orderDetailModal');
         if (detailModalEl) {
             const detailModal = new bootstrap.Modal(detailModalEl);

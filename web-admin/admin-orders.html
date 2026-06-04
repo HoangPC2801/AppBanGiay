@@ -16,7 +16,6 @@
     <!-- Khung hiển thị thông báo -->
     <div id="message-box" class="alert d-none"></div>
 
-    <!-- MÀN HÌNH 1: DANH SÁCH ĐƠN HÀNG             -->
     <div id="orders-list-view">
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
@@ -53,14 +52,12 @@
         </div>
     </div>
 
-    <!-- MÀN HÌNH 2: CHI TIẾT ĐƠN HÀNG (Ẩn mặc định)-->
     <div id="order-detail-view" class="d-none">
         <button class="btn btn-secondary mb-3" onclick="showListView()">&larr; Quay lại danh sách</button>
         
         <h2 id="detail-title" class="mb-4">Chi tiết đơn hàng</h2>
 
         <div class="row">
-            <!-- Thông tin đơn hàng & Khách hàng -->
             <div class="col-md-6">
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white"><strong>Thông tin đơn hàng</strong></div>
@@ -89,7 +86,6 @@
             </div>
         </div>
 
-        <!-- Chi tiết sản phẩm trong đơn -->
         <div class="card shadow-sm">
             <div class="card-header bg-info text-white"><strong>Chi tiết sản phẩm</strong></div>
             <div class="card-body p-0">
@@ -107,7 +103,6 @@
                         </tr>
                     </thead>
                     <tbody id="detail-items-body">
-                        <!-- JS đổ dữ liệu vào đây -->
                     </tbody>
                 </table>
             </div>
@@ -270,11 +265,10 @@
         document.getElementById('detail-status-select').value = order.status;
 
        const tbody = document.getElementById('detail-items-body'); 
-            tbody.innerHTML = ''; // Xóa dữ liệu cũ
+            tbody.innerHTML = ''; 
 
             if (order.items && order.items.length > 0) {
                 order.items.forEach(item => {
-                    // Đọc tên sản phẩm từ dữ liệu Backend vừa gói
                     const productName = item.product ? item.product.name : 'Sản phẩm không xác định';
                     const productImage = item.product && item.product.image
                         ? item.product.image
@@ -312,9 +306,8 @@
     const token = localStorage.getItem('admin_token'); 
 
     try {
-        // Gửi status qua URL giống hệt layout.js, bỏ phần body: JSON... đi
         const response = await fetch(`${API_URL}${currentDetailId}/status?status=${newStatus}`, {
-            method: 'PUT', // Đồng nhất dùng PUT theo đúng orders.py
+            method: 'PUT', 
             headers: { 
                 'Authorization': `Bearer ${token}`
             }
@@ -322,7 +315,6 @@
 
         if (response.ok) {
             showMessage(`Đã cập nhật đơn hàng #${currentDetailId} thành công!`);
-            // Cập nhật lại giao diện
             const order = currentOrders.find(o => o.id === currentDetailId);
             if (order) order.status = newStatus;
         } else {

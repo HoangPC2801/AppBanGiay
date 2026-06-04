@@ -20,7 +20,6 @@ import com.example.appbangiay.ui.theme.MauXanhChinh
 fun SplashScreen(onNavigateNext: () -> Unit) {
     val primaryBlue = MauXanhChinh
 
-    // Hiệu ứng chờ 2.5 giây rồi chuyển màn hình
     LaunchedEffect(key1 = true) {
         delay(2500)
         onNavigateNext()
@@ -31,7 +30,6 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // 1. Vẽ đường sóng ở góc trên
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
@@ -42,7 +40,6 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
                 moveTo(0f, 0f)
                 lineTo(0f, size.height * 0.6f)
 
-                // Vẽ đường cong Bezier
                 cubicTo(
                     x1 = size.width * 0.3f, y1 = size.height * 0.6f,
                     x2 = size.width * 0.5f, y2 = size.height * 0.1f,
@@ -55,7 +52,6 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
             drawPath(path = path, color = primaryBlue)
         }
 
-        // 2. Vẽ đường cong ở góc dưới
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,7 +62,6 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
                 moveTo(0f, size.height)
                 lineTo(0f, size.height * 0.5f)
 
-                // Vẽ đường cong bậc 2 (võng xuống)
                 quadraticBezierTo(
                     x1 = size.width * 0.5f, y1 = size.height * 1f,
                     x2 = size.width, y2 = size.height * 0.5f
@@ -78,12 +73,11 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
             drawPath(path = path, color = primaryBlue)
         }
 
-        // 3. Logo căn giữa màn hình
         Image(
             painter = painterResource(id = R.drawable.logo_hoangshoe),
             contentDescription = "Hoang Shoe Logo",
             modifier = Modifier
-                .fillMaxWidth(1f) // Độ rộng logo chiếm 65% màn hình
+                .fillMaxWidth(1f)
                 .height(180.dp)
                 .align(Alignment.Center)
         )

@@ -25,7 +25,7 @@ app.add_middleware(
         "http://127.0.0.1:5500"
     ],
     allow_credentials=True,
-    allow_methods=["*"],  # Cho phép tất cả các phương thức GET, POST, PUT, DELETE
+    allow_methods=["*"],  
     allow_headers=["*"],
 )
 

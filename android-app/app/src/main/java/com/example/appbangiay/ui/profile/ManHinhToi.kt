@@ -68,7 +68,7 @@ fun ManHinhToi(
             .background(bgGray)
             .verticalScroll(rememberScrollState())
     ) {
-        // --- 1. HEADER (Nền xanh) ---
+        // HEADER (Nền xanh)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -116,7 +116,6 @@ fun ManHinhToi(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Thông tin User (Phạm Công Hoàng)
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -129,7 +128,6 @@ fun ManHinhToi(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    // Badge Khách hàng thân quen
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
@@ -162,7 +160,6 @@ fun ManHinhToi(
                     )
                 }
 
-                // Nút Chỉnh sửa
                 Icon(
                     imageVector = Icons.Outlined.Edit,
                     contentDescription = "Edit Profile",
@@ -176,14 +173,12 @@ fun ManHinhToi(
             }
         }
 
-        // --- 2. NỘI DUNG CHÍNH (Đẩy lên trên để đè vào nền xanh) ---
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .offset(y = (-30).dp) // Kéo ngược lên 30dp
+                .offset(y = (-30).dp)
                 .padding(horizontal = 16.dp)
         ) {
-            // Khối Đơn hàng của tôi
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -241,7 +236,6 @@ fun ManHinhToi(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Khối Menu 1
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -263,7 +257,6 @@ fun ManHinhToi(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Khối Menu 2
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -280,7 +273,6 @@ fun ManHinhToi(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Nút Đăng xuất
             OutlinedButton(
                 onClick = { hienDialogDangXuat = true },
                 modifier = Modifier
@@ -293,7 +285,7 @@ fun ManHinhToi(
                 Text(text = "Đăng xuất", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
 
-            Spacer(modifier = Modifier.height(30.dp)) // Đệm dưới cùng tránh bị thanh điều hướng đè lên
+            Spacer(modifier = Modifier.height(30.dp))
         }
 
         if (hienDialogDangXuat) {
@@ -371,7 +363,6 @@ fun ManHinhToi(
     }
 }
 
-// Component dùng chung cho các Icon trạng thái đơn hàng
 @Composable
 fun OrderStatusItem(
     title: String,
@@ -402,7 +393,6 @@ fun OrderStatusItem(
     }
 }
 
-// Component dùng chung cho các dòng Menu
 @Composable
 fun MenuItemRow(
     icon: ImageVector,

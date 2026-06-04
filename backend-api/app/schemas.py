@@ -69,7 +69,7 @@ class ProductBase(BaseModel):
     style: Optional[str] = None
     is_active: Optional[bool] = True
 
-# Schema dùng để trả dữ liệu về cho Client (App/Web)
+
 class Product(ProductBase):
     id: int
     category_rel: Optional[Category] = None
@@ -159,7 +159,7 @@ class OrderCreate(BaseModel):
     items: List[OrderItemBase]
 
 class OrderStatusUpdate(BaseModel):
-    status: str  # Ví dụ: 'processing', 'shipped', 'completed', 'cancelled'
+    status: str 
 
 class OrderOut(BaseModel):
     id: int
@@ -186,7 +186,7 @@ class UserCreate(UserBase):
     password: str
 
 class UserUpdate(UserBase):
-    password: Optional[str] = None # Cho phép không nhập mật khẩu khi cập nhật
+    password: Optional[str] = None 
 
 class UserOut(UserBase):
     id: int
@@ -195,7 +195,7 @@ class UserOut(UserBase):
     class Config:
         from_attributes = True
 
-# --- SCHEMAS CHO ADMIN ---
+# SCHEMAS CHO ADMIN 
 class AdminBase(BaseModel):
     username: str
     full_name: str
@@ -205,8 +205,7 @@ class AdminCreate(AdminBase):
     password: str
 
 class AdminUpdate(AdminBase):
-    password: Optional[str] = None # Cho phép không nhập mật khẩu khi sửa
-
+    password: Optional[str] = None 
 class AdminOut(AdminBase):
     id: int
 

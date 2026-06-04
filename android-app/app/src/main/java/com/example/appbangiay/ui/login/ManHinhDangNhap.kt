@@ -52,7 +52,7 @@ import androidx.compose.ui.zIndex
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    viewModel: AuthViewModel, // Thêm ViewModel vào đây
+    viewModel: AuthViewModel,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     quayVeTrangChu: () -> Unit,
@@ -70,8 +70,6 @@ fun LoginScreen(
     // Lắng nghe trạng thái từ ViewModel
     val authState by viewModel.authState.collectAsState()
 
-    // --- CẤU HÌNH LAUNCHER CHO GOOGLE ---
-    // THAY ĐOẠN MÃ CỦA BẠN VÀO CHỖ "MÃ_WEB_CLIENT_ID_CỦA_BẠN"
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken("641802044909-24qqo2p5dsuu0cg99sfjkchoabobo41s.apps.googleusercontent.com")
         .requestEmail()
@@ -90,13 +88,10 @@ fun LoginScreen(
         }
     }
 
-    // --- CẤU HÌNH LAUNCHER CHO FACEBOOK ---
     val facebookAuthLauncher = rememberLauncherForActivityResult(
         LoginManager.getInstance().createLogInActivityResultContract()
     ) { result ->
-        // Kiểm tra xem người dùng có đăng nhập thành công không
         if (result.resultCode == Activity.RESULT_OK) {
-            // Lấy Token trực tiếp từ phiên đăng nhập hiện tại của Facebook
             val token = AccessToken.getCurrentAccessToken()?.token
             if (token != null) {
                 viewModel.loginWithFacebook(token)
@@ -104,12 +99,10 @@ fun LoginScreen(
                 Toast.makeText(context, "Không thể lấy thông tin từ Facebook", Toast.LENGTH_SHORT).show()
             }
         } else {
-            // Xử lý khi người dùng bấm Hủy (Cancel) tắt bảng đăng nhập
             Toast.makeText(context, "Đã hủy đăng nhập Facebook", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Lắng nghe trạng thái đăng nhập
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Success -> {
@@ -153,7 +146,6 @@ fun LoginScreen(
             }
         }
 
-        // --- 1. VẼ ĐƯỜNG SÓNG TRÊN VÀ DƯỚI (Tái sử dụng từ Splash/Intro) ---
         Canvas(modifier = Modifier.fillMaxWidth().height(220.dp).align(Alignment.TopCenter)) {
             val path = Path().apply {
                 moveTo(0f, 0f)
@@ -183,7 +175,6 @@ fun LoginScreen(
             drawPath(path = path, color = primaryBlue)
         }
 
-        // --- 2. NỘI DUNG CHÍNH (ĐĂNG NHẬP) ---
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -202,7 +193,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Tiêu đề
             Text(
                 text = "Đăng Nhập",
                 fontSize = 32.sp,
@@ -212,7 +202,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Input Email
             TextField(
                 value = email,
                 onValueChange = { email = it },
@@ -234,7 +223,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Input Mật khẩu
             TextField(
                 value = password,
                 onValueChange = { password = it },
@@ -263,7 +251,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Nhớ mật khẩu & Quên mật khẩu
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -289,16 +276,14 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Nút Đăng nhập
             Button(
                 onClick = {
-                    // Gọi hàm login từ ViewModel khi bấm nút
                     viewModel.loginWithEmail(email, password)
                 },
                 modifier = Modifier.fillMaxWidth().height(55.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                 shape = RoundedCornerShape(16.dp),
-                enabled = authState != AuthState.Loading // Khóa nút khi đang tải
+                enabled = authState != AuthState.Loading
             ) {
                 if (authState == AuthState.Loading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
@@ -309,7 +294,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Dòng chữ: Hoặc đăng nhập bằng
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -325,27 +309,22 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Nút Mạng xã hội (Facebook, Google)
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Nút Facebook
                 Image(
                     painter = painterResource(id = R.drawable.ic_facebook),
                     contentDescription = "Facebook Login",
                     modifier = Modifier.size(50.dp).clip(CircleShape).clickable {
-                        // Gọi màn hình đăng nhập FB
                         facebookAuthLauncher.launch(listOf("email", "public_profile"))
                     }
                 )
                 Spacer(modifier = Modifier.width(32.dp))
-                // Nút Google
                 Image(
                     painter = painterResource(id = R.drawable.ic_google),
                     contentDescription = "Google Login",
                     modifier = Modifier.size(50.dp).clip(CircleShape).clickable {
-                        // Khởi chạy Intent đăng nhập Google
                         googleAuthLauncher.launch(googleSignInClient.signInIntent)
                     }
                 )
@@ -353,7 +332,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Chữ: Chưa có tài khoản, Đăng ký ngay
             Text(
                 text = buildAnnotatedString {
                     append("Chưa có tài khoản, ")

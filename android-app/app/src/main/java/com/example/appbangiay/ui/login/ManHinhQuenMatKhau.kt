@@ -38,13 +38,12 @@ fun ForgotPasswordScreen(
     var email by remember { mutableStateOf("") }
     val authState by viewModel.authState.collectAsState()
 
-    // Lắng nghe trạng thái gửi email
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Success -> {
                 Toast.makeText(context, "Đã gửi email đặt lại mật khẩu! Vui lòng kiểm tra hộp thư.", Toast.LENGTH_LONG).show()
                 viewModel.resetState()
-                onNavigateBack() // Gửi xong thì tự động quay lại màn hình đăng nhập
+                onNavigateBack()
             }
             is AuthState.Error -> {
                 val errorMessage = (authState as AuthState.Error).message
@@ -60,7 +59,6 @@ fun ForgotPasswordScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // --- VẼ ĐƯỜNG SÓNG ---
         Canvas(modifier = Modifier.fillMaxWidth().height(220.dp).align(Alignment.TopCenter)) {
             val path = Path().apply {
                 moveTo(0f, 0f)
@@ -90,7 +88,6 @@ fun ForgotPasswordScreen(
             drawPath(path = path, color = primaryBlue)
         }
 
-        // --- NỘI DUNG CHÍNH ---
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -117,7 +114,6 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Ô nhập Email
             TextField(
                 value = email,
                 onValueChange = { email = it },
@@ -139,11 +135,10 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Nút Gửi yêu cầu
             Button(
                 onClick = { viewModel.resetPassword(email) },
                 modifier = Modifier
-                    .fillMaxWidth(0.8f) // Cho nút hơi thu vào một chút giống ảnh
+                    .fillMaxWidth(0.8f)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                 shape = RoundedCornerShape(16.dp),
@@ -158,7 +153,6 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Nút Quay lại
             Text(
                 text = "Quay lại",
                 fontSize = 16.sp,

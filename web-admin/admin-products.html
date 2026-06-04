@@ -213,7 +213,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
     <script>
-        // ================= FIREBASE CONFIG =================
+        // FIREBASE CONFIG
         const firebaseConfig = {
         apiKey: "AIzaSyCyuP7fgmTj0yPQh_3J8-IC7kl8QoLpqvE",
         authDomain: "appbangiay-dac0f.firebaseapp.com",
@@ -224,10 +224,8 @@
         measurementId: "G-R9HPQE536Z"
         };
 
-        // Khởi tạo Firebase
         firebase.initializeApp(firebaseConfig);
 
-        // Khởi tạo Storage
         const storage = firebase.storage();
 
         const API_URL = 'http://127.0.0.1:8000/products/';
@@ -235,7 +233,6 @@
         let allProducts = [];
         let productModal = new bootstrap.Modal(document.getElementById('productModal'));
 
-        // Hiển thị ảnh xem trước
         function previewImage(input) {
             const preview = document.getElementById('image-preview');
 
@@ -271,7 +268,6 @@
             });
         });
 
-        // 1. Tải danh sách sản phẩm
         async function fetchProducts() {
             try {
                 const response = await fetch(API_URL);
@@ -289,7 +285,6 @@
             }
         }
 
-        // 2. Render HTML Bảng
         function loadFilterOptions() {
             const categoryFilter = document.getElementById('category-filter');
             const brandFilter = document.getElementById('brand-filter');
@@ -411,12 +406,10 @@
             renderTable();
         }
 
-        // 3. Mở Modal Thêm hoặc Sửa
         function openProductModal(id = null) {
 
             const preview = document.getElementById('image-preview');
 
-            // reset file input
             document.getElementById('prod-image-file').value = "";
             document.getElementById('prod-extra-images').value = "";
             document.getElementById('extra-image-preview').innerHTML = "";
@@ -433,11 +426,9 @@
                 document.getElementById('prod-price').value = p.price;
                 document.getElementById('productOriginalPrice').value = p.original_price || p.price || 0;
 
-                // Lưu URL ảnh cũ
                 document.getElementById('prod-image-url').value =
                     p.image || '';
 
-                // Hiển thị ảnh cũ
                 if (p.image) {
                     preview.src = p.image;
                     preview.style.display = 'block';
@@ -513,7 +504,6 @@
             productModal.show();
         }
 
-        // 4. Lưu (Thêm mới hoặc Cập nhật)
         async function saveProduct() {
 
             const id = document.getElementById('prod-id').value;
@@ -521,17 +511,14 @@
             const fileInput =
                 document.getElementById('prod-image-file');
 
-            // giữ ảnh cũ nếu không upload ảnh mới
             let finalImageUrl =
                 document.getElementById('prod-image-url').value;
 
-            // nút save
             const saveBtn =
                 document.querySelector(".modal-footer .btn-primary");
 
             const originalBtnText = saveBtn.innerText;
 
-            // Có chọn file mới
             if (fileInput.files && fileInput.files[0]) {
 
                 const file = fileInput.files[0];
@@ -541,15 +528,12 @@
 
                 try {
 
-                    // tạo đường dẫn file
                     const storageRef = storage.ref(
                         'products/' + Date.now() + '_' + file.name
                     );
 
-                    // upload
                     const snapshot = await storageRef.put(file);
 
-                    // lấy URL
                     finalImageUrl =
                         await snapshot.ref.getDownloadURL();
 
@@ -575,7 +559,6 @@
             const extraInput = document.getElementById('prod-extra-images');
             let extraImages = [];
 
-            // Nếu sửa sản phẩm mà không chọn ảnh phụ mới thì giữ ảnh phụ cũ
             if (id) {
                 const oldProduct = currentProducts.find(p => p.id == id);
                 if (oldProduct && oldProduct.images) {
@@ -586,7 +569,6 @@
                 }
             }
 
-            // Nếu có chọn ảnh phụ mới thì upload và thay toàn bộ ảnh phụ cũ
             if (extraInput.files && extraInput.files.length > 0) {
                 extraImages = [];
 
@@ -623,7 +605,6 @@
             const originalPriceValue =
                 parseFloat(document.getElementById('productOriginalPrice').value) || priceValue;
             
-            // data gửi FastAPI
             const data = {
 
                 name:
@@ -716,7 +697,6 @@
             }
         }
 
-        // 5. Xoá Sản Phẩm
         async function deleteProduct(id) {
             if (!confirm(`Bạn có chắc chắn muốn xoá sản phẩm ID = ${id} không?`)) return;
 
@@ -733,7 +713,6 @@
             }
         }
 
-        // Tự động load dữ liệu khi vào trang
 
         document.getElementById('search-input').addEventListener('input', filterProducts);
         document.getElementById('category-filter').addEventListener('change', filterProducts);

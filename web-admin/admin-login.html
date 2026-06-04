@@ -40,7 +40,6 @@
 <script>
     const LOGIN_API_URL = 'http://127.0.0.1:8000/admins/login';
 
-    // 1. Kiểm tra nếu đã đăng nhập rồi thì đẩy thẳng vào Dashboard, không bắt đăng nhập lại
     window.onload = () => {
         if (localStorage.getItem('admin_role')) {
             window.location.href = 'admin-dashboard.html';
@@ -53,21 +52,19 @@
         box.classList.remove('d-none');
     }
 
-    // 2. Xử lý sự kiện đăng nhập
     async function handleLogin(event) {
-        event.preventDefault(); // Chặn hành vi tải lại trang của Form
+        event.preventDefault(); 
 
         const usernameInput = document.getElementById('username').value;
         const passwordInput = document.getElementById('password').value;
         const btnLogin = document.getElementById('btn-login');
 
-        // Hiển thị trạng thái processing
+        
         btnLogin.disabled = true;
         btnLogin.innerText = 'Đang kiểm tra...';
         document.getElementById('error-box').classList.add('d-none');
 
         try {
-            // Gửi dữ liệu lên API
             const response = await fetch(LOGIN_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -80,20 +77,16 @@
             const data = await response.json();
 
             if (response.ok) {
-                // Đăng nhập thành công: Lưu thông tin vào LocalStorage
                 localStorage.setItem('admin_id', data.id);
                 localStorage.setItem('admin_role', data.role);
                 localStorage.setItem('admin_username', data.username);
                 
-                // Nếu Backend của bạn có cấu hình JWT Token để bảo mật API, hãy lưu thêm token:
                 if (data.access_token) {
                     localStorage.setItem('admin_token', data.access_token);
                 }
 
-                // Chuyển hướng vào trang quản trị
                 window.location.href = 'admin-dashboard.html';
             } else {
-                // Đăng nhập thất bại (Sai pass, sai user...)
                 showError(data.detail || "Tên đăng nhập hoặc mật khẩu không đúng.");
                 btnLogin.disabled = false;
                 btnLogin.innerText = 'Đăng nhập';

@@ -38,7 +38,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    // --- XỬ LÝ ĐĂNG KÝ BẰNG EMAIL ---
+    // XỬ LÝ ĐĂNG KÝ BẰNG EMAIL
     fun registerWithEmail(email: String, pass: String, confirmPass: String) {
         if (email.isBlank() || pass.isBlank() || confirmPass.isBlank()) {
             _authState.value = AuthState.Error("Vui lòng điền đầy đủ thông tin")
@@ -73,7 +73,7 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState.Idle
     }
 
-    // --- XỬ LÝ GOOGLE LOGIN ---
+    // XỬ LÝ GOOGLE LOGIN
     fun loginWithGoogle(idToken: String) {
         _authState.value = AuthState.Loading
         val credential = GoogleAuthProvider.getCredential(idToken, null)
@@ -87,7 +87,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    // --- XỬ LÝ FACEBOOK LOGIN ---
+    // XỬ LÝ FACEBOOK LOGIN
     fun loginWithFacebook(accessToken: String) {
         _authState.value = AuthState.Loading
         val credential = FacebookAuthProvider.getCredential(accessToken)
@@ -101,7 +101,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    // --- XỬ LÝ QUÊN MẬT KHẨU ---
+    // XỬ LÝ QUÊN MẬT KHẨU
     fun resetPassword(email: String) {
         if (email.isBlank()) {
             _authState.value = AuthState.Error("Vui lòng nhập email của bạn")
@@ -113,7 +113,6 @@ class AuthViewModel : ViewModel() {
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // Tận dụng trạng thái Success để báo thành công
                     _authState.value = AuthState.Success
                 } else {
                     _authState.value = AuthState.Error(task.exception?.message ?: "Không thể gửi email đặt lại mật khẩu")

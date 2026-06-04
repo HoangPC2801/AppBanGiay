@@ -80,7 +80,6 @@ fun ManHinhTrangChu(
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
     ) {
-        // --- THANH TRÊN CÙNG (HEADER) MỚI ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -93,7 +92,6 @@ fun ManHinhTrangChu(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
 
-                // LOGO
                 Image(
                     painter = painterResource(id = R.drawable.logo4),
                     contentDescription = "Logo",
@@ -103,7 +101,6 @@ fun ManHinhTrangChu(
                     contentScale = ContentScale.Fit
                 )
 
-                // ICONS
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -134,16 +131,13 @@ fun ManHinhTrangChu(
             }
         }
 
-        // --- NỘI DUNG CUỘN ---
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
 
             Spacer(modifier = Modifier.height(12.dp))
-            // 2. BANNER QUẢNG CÁO
             BannerAutoSlider(
                 banners = danhSachBanner
             )
 
-            // 3. DANH MỤC THƯƠNG HIỆU
             Text(
                 text = "THƯƠNG HIỆU",
                 modifier = Modifier.padding(16.dp),
@@ -190,7 +184,6 @@ fun ManHinhTrangChu(
                 )
             }
 
-            // 4. DANH SÁCH SẢN PHẨM (Giữ nguyên giao diện cũ dùng Row/Column)
             Text(
                 text = "SẢN PHẨM",
                 modifier = Modifier.padding(16.dp),

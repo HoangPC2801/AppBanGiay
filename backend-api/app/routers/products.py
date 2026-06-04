@@ -111,6 +111,9 @@ def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)
     product_data["original_price"] = original_price
     product_data["discount_percent"] = discount_percent
 
+    product_data.pop("average_rating", None)
+    product_data.pop("sold_count", None)
+
     new_product = models.Product(**product_data)
 
     db.add(new_product)
