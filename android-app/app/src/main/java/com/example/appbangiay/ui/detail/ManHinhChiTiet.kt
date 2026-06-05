@@ -1511,6 +1511,7 @@ fun DanhSachDanhGiaThat(
                     ten = review.userName ?: "Người dùng",
                     ngay = review.createdAt?.take(10) ?: "",
                     noiDung = review.comment ?: "",
+                    rating = review.rating,
                     avatarUrl = review.avatarUrl,
                     reviewImage = review.reviewImage,
                     adminReply = review.adminReply,
@@ -1558,6 +1559,7 @@ fun DanhGiaItem(
     ten: String,
     ngay: String,
     noiDung: String,
+    rating: Int,
     avatarUrl: String? = null,
     reviewImage: String? = null,
     adminReply: String? = null,
@@ -1615,11 +1617,16 @@ fun DanhGiaItem(
                 )
             }
 
-            Text(
-                text = "★★★★★",
-                color = Color(0xFFFFC107),
-                fontSize = 16.sp
-            )
+            Row {
+                repeat(5) { index ->
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        tint = if (index < rating) Color(0xFFFFC107) else Color.LightGray,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 

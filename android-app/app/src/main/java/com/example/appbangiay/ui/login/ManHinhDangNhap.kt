@@ -59,6 +59,10 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit
 ) {
     val context = LocalContext.current
+    val sharedPref = context.getSharedPreferences(
+        "login_pref",
+        android.content.Context.MODE_PRIVATE
+    )
     val primaryBlue = MauXanhChinh
     val grayBackground = Color(0xFFEAEAEA)
 
@@ -66,6 +70,15 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var isRememberPassword by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isRememberPassword =
+            sharedPref.getBoolean("remember_password", false)
+
+        if (isRememberPassword) {
+            email = sharedPref.getString("email", "") ?: ""
+            password = sharedPref.getString("password", "") ?: ""
+        }
+    }
 
     // Lắng nghe trạng thái từ ViewModel
     val authState by viewModel.authState.collectAsState()
@@ -106,7 +119,25 @@ fun LoginScreen(
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Success -> {
-                Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+
+                if (isRememberPassword) {
+                    sharedPref.edit()
+                        .putString("email", email)
+                        .putString("password", password)
+                        .putBoolean("remember_password", true)
+                        .apply()
+                } else {
+                    sharedPref.edit()
+                        .clear()
+                        .apply()
+                }
+
+                Toast.makeText(
+                    context,
+                    "Đăng nhập thành công!",
+                    Toast.LENGTH_SHORT
+                ).show()
+
                 viewModel.resetState()
                 onLoginSuccess()
             }
